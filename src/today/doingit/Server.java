@@ -15,10 +15,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class Server {
 
@@ -36,7 +33,10 @@ public class Server {
         CLIENT INFORMATION
      */
     //This is a HashMap which allows messages waiting to be sent to be queued.
-    private Map<SocketChannel, byte[]> messages = new HashMap<SocketChannel, byte[]>();
+    private Map<SocketChannel, ArrayList<byte[]>> messages = new HashMap<SocketChannel, ArrayList<byte[]>>();
+
+    //Maintains a list of usernames connected to client channels
+    private Map<SocketChannel, String> nicks = new HashMap<SocketChannel, String>();
 
 
     /**
@@ -81,7 +81,7 @@ public class Server {
                 break;
             }
 
-            //Maintains a list of requests
+            //Maintains a request for every channel
             Set<SelectionKey> selectedKeys = selector.selectedKeys();
             Iterator<SelectionKey> iter = selectedKeys.iterator();
 
@@ -132,10 +132,42 @@ public class Server {
 
             //If there was anything in the read buffer...
             if(read > 0) {
-                String data = new String(buffer.array(), "UTF-8");
-                System.out.println("From: " + client.getRemoteAddress() + "\nMessage: " + data);
 
-                push(key.channel(), "From: " + client.getLocalAddress() + "\nMessage: " + data + "\r\n");
+                String data = new String(buffer.array(), "UTF-8");
+
+                //Client must send a Nick request
+                String nick;
+                if(data.startsWith("Nick:") && !nicks.containsKey(client)) {
+
+                    //Get client's nick & add to HashMap, nicks
+                    nick = data.substring(5).trim();
+                    if(nick.matches("[A-Za-z0-9]{4,10}")) {
+                        nicks.put(client, nick);
+                        push(client, "Welcome, " + nick + "\n");
+                    }
+                    else {
+                        push(client, "ERROR: Nick rejected!");
+                        //client.close();
+                    }
+                    key.interestOps(SelectionKey.OP_WRITE);
+                    return;
+                }
+
+                nick = nicks.get(client);
+                System.out.println(nick + " says: " + data + "\n");
+
+                //Send message to all connected users -- this is just a test for now
+                for(SelectionKey k : selector.keys()) {
+
+                    try  {
+                       push((SocketChannel)k.channel(), nick + " says: " + data + "\r");
+                       k.interestOps(SelectionKey.OP_WRITE);
+                    }
+                    catch(Exception e) {
+                        //Chances are, it's a ServerSocketChannel, so ignore it
+                    }
+                }
+
                 key.interestOps(SelectionKey.OP_WRITE);
             }
         }
@@ -146,13 +178,16 @@ public class Server {
 
     /**
      * Adds a message to send to a client's channel to the queue.
-     * @param selectableChannel The client channel to send the message to.
+     * @param channel The client channel to send the message to.
      * @param message The message to send to the client channel.
-     * @see SelectableChannel
+     * @see SocketChannel
      */
-    public void push(SelectableChannel selectableChannel, String message) {
+    public void push(SocketChannel channel, String message) {
+        if(!messages.containsKey(channel)) {
+            messages.put(channel, new ArrayList<byte[]>());
+        }
         byte[] data = message.getBytes();
-        messages.put((SocketChannel)selectableChannel, data);
+        messages.get(channel).add(data);
     }
 
 
@@ -167,10 +202,11 @@ public class Server {
         try {
 
             //Get next message in queue belonging to THIS client channel & remove it
-            byte[] data = messages.get(client);
-            messages.remove(client);
+            while(!messages.get(client).isEmpty()) {
+                byte[] data = messages.get(client).remove(0);
+                client.write(ByteBuffer.wrap(data));
+            }
 
-            client.write(ByteBuffer.wrap(data));
             key.interestOps(SelectionKey.OP_READ);
         }
         catch(IOException ie) {
