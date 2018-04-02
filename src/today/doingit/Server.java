@@ -33,10 +33,12 @@ public class Server {
         CLIENT INFORMATION
      */
     //This is a HashMap which allows messages waiting to be sent to be queued.
-    private Map<SocketChannel, ArrayList<byte[]>> messages = new HashMap<SocketChannel, ArrayList<byte[]>>();
 
-    //Maintains a list of usernames connected to client channels
-    private Map<SocketChannel, String> nicks = new HashMap<SocketChannel, String>();
+    /*
+        NOTE: ALL THESE VARIABLES WILL BE MOVED TO RequestHandler
+     */
+    private Map<SocketChannel, User> users = new HashMap<SocketChannel, User>();
+    private Map<String, Group> groups = new HashMap<String, Group>();
 
 
     /**
@@ -121,6 +123,10 @@ public class Server {
         catch(IOException ie) {}
     }
 
+    /*
+        This entire section needs cleaning
+        NOTE: majority of this will go to RequestHandler
+     */
     private void read(SelectionKey key) {
         SocketChannel client = (SocketChannel) key.channel(); //get current client
 
@@ -135,40 +141,60 @@ public class Server {
 
                 String data = new String(buffer.array(), "UTF-8");
 
-                //Client must send a Nick request
-                String nick;
-                if(data.startsWith("Nick:") && !nicks.containsKey(client)) {
+                /*
+                    Client must first IDENTIFY themselves
+                    -----
+                 */
+                User user = users.get(client);
+
+                if(data.startsWith("Nick:") && !users.containsKey(client)) {
 
                     //Get client's nick & add to HashMap, nicks
-                    nick = data.substring(5).trim();
-                    if(nick.matches("[A-Za-z0-9]{4,10}")) {
-                        nicks.put(client, nick);
-                        push(client, "Welcome, " + nick + "\n");
-                    }
-                    else {
-                        push(client, "ERROR: Nick rejected!");
-                        //client.close();
-                    }
-                    key.interestOps(SelectionKey.OP_WRITE);
-                    return;
+                    //Will introduce proper system for parameter values later
+                    String nick = data.substring(5).trim();
+                    authorizeUser(key, nick);
                 }
 
-                nick = nicks.get(client);
-                System.out.println(nick + " says: " + data + "\n");
+                //Just testing groups for now...
+                else if(data.startsWith("CreateGroup:")) {
 
-                //Send message to all connected users -- this is just a test for now
-                for(SelectionKey k : selector.keys()) {
+                    String gname = data.substring(12).trim();
+                    Group group = new Group(gname);
+                    groups.put(gname, group);
+                    group.addMember(user);
 
-                    try  {
-                       push((SocketChannel)k.channel(), nick + " says: " + data + "\r");
-                       k.interestOps(SelectionKey.OP_WRITE);
-                    }
-                    catch(Exception e) {
-                        //Chances are, it's a ServerSocketChannel, so ignore it
+                }
+                //For now, Group:[groupName]:[groupMsg]
+                else if(data.startsWith("Group:")) {
+                    String[] params = data.split(":");
+                    System.out.println(params);
+                    Group group = groups.get(params[1]);
+                    group.sendMessage("(" + params[1] + ") " + user.getUsername() + " says: " + params[2]);
+
+                }
+                else if(data.startsWith("JoinGroup:")) {
+
+                    String gname = data.substring(10).trim();
+                    System.out.println(gname);
+                    Group group = groups.get(gname);
+                    group.addMember(user);
+                }
+                else {
+
+                    System.out.println(user.getUsername() + " says: " + data + "\n");
+
+                    /*
+                        For now, send a message to all users connected...
+                        ------
+                     */
+                    for (User otheruser : users.values()) {
+                        try {
+                            otheruser.sendMessage(user.getUsername() + " says: " + data + "\r");
+                        } catch (Exception e) {
+                            //Chances are, it's a ServerSocketChannel, so ignore it
+                        }
                     }
                 }
-
-                key.interestOps(SelectionKey.OP_WRITE);
             }
         }
         catch(IOException ie) {
@@ -176,34 +202,24 @@ public class Server {
         }
     }
 
-    /**
-     * Adds a message to send to a client's channel to the queue.
-     * @param channel The client channel to send the message to.
-     * @param message The message to send to the client channel.
-     * @see SocketChannel
-     */
-    public void push(SocketChannel channel, String message) {
-        if(!messages.containsKey(channel)) {
-            messages.put(channel, new ArrayList<byte[]>());
-        }
-        byte[] data = message.getBytes();
-        messages.get(channel).add(data);
-    }
-
-
     /*
-        Takes an item from the message queue belonging to client channel x,
-        and writes.
+        INTERNAL SERVER METHOD:
+        write performs a N-I/O operation to the socket supplied with
+        a list of messages waiting to be sent.
+        This is because it invokes socket functions inside of this function.
      */
     private void write(SelectionKey key) {
         //Get client channel
         SocketChannel client = (SocketChannel) key.channel();
+        User user = users.get(client);
 
         try {
 
             //Get next message in queue belonging to THIS client channel & remove it
-            while(!messages.get(client).isEmpty()) {
-                byte[] data = messages.get(client).remove(0);
+            ArrayList<byte[]> messages = user.getMessageQueue();
+
+            while(!messages.isEmpty()) {
+                byte[] data = messages.remove(0);
                 client.write(ByteBuffer.wrap(data));
             }
 
@@ -211,6 +227,22 @@ public class Server {
         }
         catch(IOException ie) {
             ie.printStackTrace();
+        }
+    }
+
+    //To: RequestHandler
+    protected void authorizeUser(SelectionKey key, String nick) {
+        //Try create a new user & set username
+        User user = new User(key);
+        if(user.setUsername(nick)) {
+
+            //If username OK, add new User to users
+            users.put((SocketChannel)key.channel(), user);
+            user.sendMessage("Welcome, " + nick);
+        }
+        else {
+            //Close connection... (ADD LATER)
+            return;
         }
     }
 }
