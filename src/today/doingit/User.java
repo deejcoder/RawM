@@ -22,7 +22,7 @@ public class User {
      */
     public void sendMessage(String message) {
         //All message formatting & verification will occur here.
-        messages.add(message.getBytes());
+        messages.add((message + "\r").getBytes());
         key.interestOps(SelectionKey.OP_WRITE);
     }
 

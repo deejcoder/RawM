@@ -29,17 +29,6 @@ public class Server {
     private final static int bufferSize = 512;
 
 
-    /*
-        CLIENT INFORMATION
-     */
-    //This is a HashMap which allows messages waiting to be sent to be queued.
-
-    /*
-        NOTE: ALL THESE VARIABLES WILL BE MOVED TO RequestHandler
-     */
-    private Map<SocketChannel, User> users = new HashMap<SocketChannel, User>();
-    private Map<String, Group> groups = new HashMap<String, Group>();
-
 
     /**
      * Initializes a non-blocking asynchronous Server object.
@@ -123,10 +112,6 @@ public class Server {
         catch(IOException ie) {}
     }
 
-    /*
-        This entire section needs cleaning
-        NOTE: majority of this will go to RequestHandler
-     */
     private void read(SelectionKey key) {
         SocketChannel client = (SocketChannel) key.channel(); //get current client
 
@@ -141,60 +126,7 @@ public class Server {
 
                 String data = new String(buffer.array(), "UTF-8");
 
-                /*
-                    Client must first IDENTIFY themselves
-                    -----
-                 */
-                User user = users.get(client);
-
-                if(data.startsWith("Nick:") && !users.containsKey(client)) {
-
-                    //Get client's nick & add to HashMap, nicks
-                    //Will introduce proper system for parameter values later
-                    String nick = data.substring(5).trim();
-                    authorizeUser(key, nick);
-                }
-
-                //Just testing groups for now...
-                else if(data.startsWith("CreateGroup:")) {
-
-                    String gname = data.substring(12).trim();
-                    Group group = new Group(gname);
-                    groups.put(gname, group);
-                    group.addMember(user);
-
-                }
-                //For now, Group:[groupName]:[groupMsg]
-                else if(data.startsWith("Group:")) {
-                    String[] params = data.split(":");
-                    System.out.println(params);
-                    Group group = groups.get(params[1]);
-                    group.sendMessage("(" + params[1] + ") " + user.getUsername() + " says: " + params[2]);
-
-                }
-                else if(data.startsWith("JoinGroup:")) {
-
-                    String gname = data.substring(10).trim();
-                    System.out.println(gname);
-                    Group group = groups.get(gname);
-                    group.addMember(user);
-                }
-                else {
-
-                    System.out.println(user.getUsername() + " says: " + data + "\n");
-
-                    /*
-                        For now, send a message to all users connected...
-                        ------
-                     */
-                    for (User otheruser : users.values()) {
-                        try {
-                            otheruser.sendMessage(user.getUsername() + " says: " + data + "\r");
-                        } catch (Exception e) {
-                            //Chances are, it's a ServerSocketChannel, so ignore it
-                        }
-                    }
-                }
+                MessageHandler.processMessage(key, data);
             }
         }
         catch(IOException ie) {
@@ -211,12 +143,11 @@ public class Server {
     private void write(SelectionKey key) {
         //Get client channel
         SocketChannel client = (SocketChannel) key.channel();
-        User user = users.get(client);
 
         try {
 
             //Get next message in queue belonging to THIS client channel & remove it
-            ArrayList<byte[]> messages = user.getMessageQueue();
+            ArrayList<byte[]> messages = MessageHandler.getMessageQueue(client);
 
             while(!messages.isEmpty()) {
                 byte[] data = messages.remove(0);
@@ -230,19 +161,4 @@ public class Server {
         }
     }
 
-    //To: RequestHandler
-    protected void authorizeUser(SelectionKey key, String nick) {
-        //Try create a new user & set username
-        User user = new User(key);
-        if(user.setUsername(nick)) {
-
-            //If username OK, add new User to users
-            users.put((SocketChannel)key.channel(), user);
-            user.sendMessage("Welcome, " + nick);
-        }
-        else {
-            //Close connection... (ADD LATER)
-            return;
-        }
-    }
 }
