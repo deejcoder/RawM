@@ -28,4 +28,12 @@ public class Group {
             user.sendMessage(message);
         }
     }
+
+    /**
+     * Returns the group name
+     * @return
+     */
+    public String getGroupName() {
+        return groupname;
+    }
 }

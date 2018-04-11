@@ -10,12 +10,21 @@
 
 package today.doingit;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import today.doingit.requests.Message;
+
 import java.io.IOException;
 
 public class Main {
 
     public static void main(String[] args) throws IOException {
+
+
+
 	    Server server = new Server(5000, "127.0.0.1");
+
+
 
     }
 }

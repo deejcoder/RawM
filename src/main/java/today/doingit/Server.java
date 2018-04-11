@@ -126,7 +126,7 @@ public class Server {
 
                 String data = new String(buffer.array(), "UTF-8");
 
-                MessageHandler.processMessage(key, data);
+                RequestHandler.processMessage(key, data.replaceAll("\u0000.*", ""));
             }
         }
         catch(IOException ie) {
@@ -147,7 +147,7 @@ public class Server {
         try {
 
             //Get next message in queue belonging to THIS client channel & remove it
-            ArrayList<byte[]> messages = MessageHandler.getMessageQueue(client);
+            ArrayList<byte[]> messages = RequestHandler.getMessageQueue(client);
 
             while(!messages.isEmpty()) {
                 byte[] data = messages.remove(0);
