@@ -67,9 +67,10 @@ public class Server {
             try {
                 selector.select();
             }
+            //Client has closed connection
             catch(IOException ie) {
                 ie.printStackTrace();
-                break;
+                return;
             }
 
             //Maintains a request for every channel
@@ -125,6 +126,7 @@ public class Server {
             if(read > 0) {
 
                 String data = new String(buffer.array(), "UTF-8");
+                System.out.println(data);
 
                 RequestHandler.processMessage(key, data.replaceAll("\u0000.*", ""));
             }
