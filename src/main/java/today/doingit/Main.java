@@ -10,8 +10,7 @@
 
 package today.doingit;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import today.doingit.Server.Server;
 import today.doingit.requests.Message;
 
 import java.io.IOException;

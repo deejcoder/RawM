@@ -8,7 +8,7 @@
     @since 2018-03-31
  */
 
-package today.doingit;
+package today.doingit.Server;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

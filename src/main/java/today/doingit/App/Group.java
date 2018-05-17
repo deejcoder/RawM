@@ -1,4 +1,4 @@
-package today.doingit;
+package today.doingit.App;
 
 import java.util.ArrayList;
 

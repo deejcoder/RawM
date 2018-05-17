@@ -1,4 +1,4 @@
-package today.doingit;
+package today.doingit.App;
 
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
