@@ -1,10 +1,14 @@
 package today.doingit.App.Request;
 
+//Google's JSON
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+//Exceptions
 import java.io.IOException;
+
+//Networking
 import java.nio.channels.SocketChannel;
 
 /**
@@ -19,7 +23,8 @@ public class Authorization extends Request {
     }
 
     /**
-     * OnIncomingRequest is invoked when there is an incoming authorization request.
+     * OnIncomingRequest is invoked when there is an incoming authorization request. This is
+     * declared by the {@link RequestCallback} annotation.
      * @param client the client sending the request
      * @param content the request content
      * @return the string to return to the client.
@@ -36,9 +41,12 @@ public class Authorization extends Request {
            }
          */
 
+        //If already authorized, exit
         if(isAuthorized(client)) {
             return "A01: Already Authorized";
         }
+
+        //Get the username & password sent from the client
         JsonParser parser = new JsonParser();
         JsonElement rootNode = parser.parse(content);
 
@@ -46,6 +54,7 @@ public class Authorization extends Request {
             JsonObject json = rootNode.getAsJsonObject();
             JsonElement username = json.get("username");
             JsonElement password = json.get("password");
+
             System.out.println("Sending authorization request using username=" + username + " and password=" + password);
             try {
                 System.out.println("Authorization successful for client " + client.getRemoteAddress().toString() + " with username=" + username);
