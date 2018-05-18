@@ -133,7 +133,6 @@ public class Server {
                 System.out.println(data);
 
                 requestHandler.handleRequest(client, data.replaceAll("\u0000.*,", ""));
-                //RequestHandler.processMessage(key, data.replaceAll("\u0000.*", ""));
             }
         }
         catch(IOException ie) {

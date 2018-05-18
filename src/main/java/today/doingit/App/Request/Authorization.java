@@ -12,14 +12,14 @@ import java.io.IOException;
 import java.nio.channels.SocketChannel;
 
 /**
- * Maintains a list of authenticated users
+ * This class handles everything to do with user
+ * authorization. This is simply a request type.
+ *
+ * TODO: Maintain connection to database, finish proper authorization.
  */
 public class Authorization extends Request {
 
-    //private static Map<SocketChannel, User> users;
-//Map<SocketChannel, User> users
     public Authorization() {
-        //this.users = users;
     }
 
     /**
@@ -64,7 +64,7 @@ public class Authorization extends Request {
                 System.exit(0);
             }
         }
-        return "test";
+        return "{return json} -- to be sent back to the client";
     }
 
     /**
