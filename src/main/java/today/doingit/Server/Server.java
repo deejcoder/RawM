@@ -25,6 +25,7 @@ public class Server {
     private SocketAddress addr;
     private ServerSocketChannel server;
     private Selector selector;
+    private RequestHandler requestHandler;
 
     private final static int bufferSize = 512;
 
@@ -50,6 +51,9 @@ public class Server {
         //Begin listening for incoming connections
         addr = new InetSocketAddress(ip, port);
         server.socket().bind(addr);
+
+        //Create a new request handler
+        requestHandler = new RequestHandler();
 
         //Set up the selection key
         server.register(selector, SelectionKey.OP_ACCEPT);
@@ -128,7 +132,8 @@ public class Server {
                 String data = new String(buffer.array(), "UTF-8");
                 System.out.println(data);
 
-                RequestHandler.processMessage(key, data.replaceAll("\u0000.*", ""));
+                requestHandler.handleRequest(client, data.replaceAll("\u0000.*,", ""));
+                //RequestHandler.processMessage(key, data.replaceAll("\u0000.*", ""));
             }
         }
         catch(IOException ie) {
@@ -146,21 +151,21 @@ public class Server {
         //Get client channel
         SocketChannel client = (SocketChannel) key.channel();
 
-        try {
+        //try {
 
             //Get next message in queue belonging to THIS client channel & remove it
-            ArrayList<byte[]> messages = RequestHandler.getMessageQueue(client);
+            //ArrayList<byte[]> messages = RequestHandler.getMessageQueue(client);
 
-            while(!messages.isEmpty()) {
+            /*while(!messages.isEmpty()) {
                 byte[] data = messages.remove(0);
                 client.write(ByteBuffer.wrap(data));
-            }
+            }*/
 
             key.interestOps(SelectionKey.OP_READ);
-        }
-        catch(IOException ie) {
-            ie.printStackTrace();
-        }
+       // }
+       // catch(IOException ie) {
+        //    ie.printStackTrace();
+        //}
     }
 
 }

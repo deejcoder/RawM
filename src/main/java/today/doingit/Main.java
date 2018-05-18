@@ -10,8 +10,9 @@
 
 package today.doingit;
 
+import today.doingit.App.Application;
+import today.doingit.App.Request.Request;
 import today.doingit.Server.Server;
-import today.doingit.requests.Message;
 
 import java.io.IOException;
 
@@ -19,7 +20,8 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
 
-
+        Application app = new Application();
+        Request request = new Request();
 
 	    Server server = new Server(5000, "127.0.0.1");
 

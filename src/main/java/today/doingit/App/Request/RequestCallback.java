@@ -1,4 +1,4 @@
-package today.doingit.App;
+package today.doingit.App.Request;
 
 import java.lang.annotation.*;
 

@@ -3,6 +3,7 @@ package today.doingit.App;
 import java.nio.channels.SocketChannel;
 import java.util.HashMap;
 import java.util.Map;
+import today.doingit.App.Request.Authorization;
 
 public class Application {
 
@@ -15,7 +16,7 @@ public class Application {
     public Application() {
 
         //Manages and maintains authorization requests
-        auth = new Authorization(users);
+        auth = new Authorization();
 
     }
 }

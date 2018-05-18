@@ -1,21 +1,21 @@
-package today.doingit.App;
+package today.doingit.App.Request;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import java.io.IOException;
 import java.nio.channels.SocketChannel;
-import java.util.Map;
 
 /**
  * Maintains a list of authenticated users
  */
-public class Authorization {
+public class Authorization extends Request {
 
-    private static Map<SocketChannel, User> users;
-
-    public Authorization(Map<SocketChannel, User> users) {
-        this.users = users;
+    //private static Map<SocketChannel, User> users;
+//Map<SocketChannel, User> users
+    public Authorization() {
+        //this.users = users;
     }
 
     /**
@@ -27,7 +27,7 @@ public class Authorization {
     @RequestCallback(
             name = "authorization"
     )
-    private static String OnIncomingRequest(SocketChannel client, String content) {
+    public static String OnIncomingRequest(SocketChannel client, String content) {
         /*
             Authorization request should be the following format
             {
@@ -46,6 +46,14 @@ public class Authorization {
             JsonObject json = rootNode.getAsJsonObject();
             JsonElement username = json.get("username");
             JsonElement password = json.get("password");
+            System.out.println("Sending authorization request using username=" + username + " and password=" + password);
+            try {
+                System.out.println("Authorization successful for client " + client.getRemoteAddress().toString() + " with username=" + username);
+            }
+            catch(IOException ie) {
+                ie.printStackTrace();
+                System.exit(0);
+            }
         }
         return "test";
     }
@@ -56,9 +64,9 @@ public class Authorization {
      * @return true or false
      */
     public static boolean isAuthorized(SocketChannel client) {
-        if(users.containsKey(client)) {
+        /*if(users.containsKey(client)) {
             return true;
-        }
+        }*/
         return false;
     }
 }
