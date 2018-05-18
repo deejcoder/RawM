@@ -3,6 +3,7 @@ package today.doingit.App.Request;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import today.doingit.Server.Server;
 
 import java.nio.channels.SocketChannel;
 
@@ -19,7 +20,7 @@ public class Message {
     @RequestCallback(
             name="message"
     )
-    public static String OnIncomingMessage(SocketChannel client, String content) {
+    public static String OnIncomingMessage(Server server, SocketChannel client, String content) {
 
         /*
             A message is structured,
@@ -40,7 +41,7 @@ public class Message {
 
             //Do stuff
             System.out.println("Sending " + body.toString() + ", to " + address);
-            return body.toString();
+            return "{\"type\":\"broadcast\",\"body\":{\"type\":\"message\",\"body\":\"" + body.getAsString() + "\"}}\r\n";
 
         }
 

@@ -10,6 +10,8 @@
 
 package today.doingit.Server;
 
+import today.doingit.App.User;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -28,6 +30,11 @@ public class Server {
     private RequestHandler requestHandler;
 
     private final static int bufferSize = 512;
+
+    private HashMap<SocketChannel, ArrayList<String>> messageQueue = new HashMap<SocketChannel, ArrayList<String>>();
+
+    //Stores users that have been authorized.
+    private static Map<User, SocketChannel> clients = new HashMap<User, SocketChannel>();
 
 
 
@@ -132,7 +139,9 @@ public class Server {
                 String data = new String(buffer.array(), "UTF-8");
                 System.out.println(data);
 
-                requestHandler.handleRequest(client, data.replaceAll("\u0000.*,", ""));
+                String response = requestHandler.handleRequest(this, client, data.replaceAll("\u0000.*,", ""));
+                ResponseHandler.handleResponse(this, response);
+                key.interestOps(SelectionKey.OP_WRITE);
             }
         }
         catch(IOException ie) {
@@ -150,21 +159,36 @@ public class Server {
         //Get client channel
         SocketChannel client = (SocketChannel) key.channel();
 
-        //try {
+        try {
 
             //Get next message in queue belonging to THIS client channel & remove it
-            //ArrayList<byte[]> messages = RequestHandler.getMessageQueue(client);
 
-            /*while(!messages.isEmpty()) {
-                byte[] data = messages.remove(0);
-                client.write(ByteBuffer.wrap(data));
-            }*/
+            ArrayList<String> messages = messageQueue.get(client);
+            while(!messages.isEmpty()) {
+                String data = messages.remove(0);
+                client.write(ByteBuffer.wrap(data.getBytes()));
+            }
 
             key.interestOps(SelectionKey.OP_READ);
-       // }
-       // catch(IOException ie) {
-        //    ie.printStackTrace();
-        //}
+        }
+        catch(IOException ie) {
+            ie.printStackTrace();
+        }
+    }
+
+    //Needs updating
+    public void push(SocketChannel client, String message) {
+        if(messageQueue.containsKey(client)) {
+            messageQueue.get(client).add(message);
+        }
+        else {
+            messageQueue.put(client, new ArrayList<String>());
+            messageQueue.get(client).add(message);
+        }
+    }
+
+    public Map<User, SocketChannel> getClientList() {
+        return clients;
     }
 
 }

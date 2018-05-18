@@ -4,6 +4,8 @@ package today.doingit.App.Request;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import today.doingit.App.User;
+import today.doingit.Server.Server;
 
 //Exceptions
 import java.io.IOException;
@@ -32,7 +34,7 @@ public class Authorization extends Request {
     @RequestCallback(
             name = "authorization"
     )
-    public static String OnIncomingRequest(SocketChannel client, String content) {
+    public static String OnIncomingRequest(Server server, SocketChannel client, String content) {
         /*
             Authorization request should be the following format
             {
@@ -54,6 +56,7 @@ public class Authorization extends Request {
             JsonObject json = rootNode.getAsJsonObject();
             JsonElement username = json.get("username");
             JsonElement password = json.get("password");
+            server.getClientList().put(new User(client), client);
 
             System.out.println("Sending authorization request using username=" + username + " and password=" + password);
             try {
@@ -64,7 +67,7 @@ public class Authorization extends Request {
                 System.exit(0);
             }
         }
-        return "{return json} -- to be sent back to the client";
+        return "{\"type\":\"broadcast\",\"body\":{\"type\":\"authorization\",\"body\":\"Authorized\"}}\r\n";
     }
 
     /**

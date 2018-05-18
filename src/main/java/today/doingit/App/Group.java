@@ -19,15 +19,6 @@ public class Group {
         users.add(user);
     }
 
-    /**
-     * Sends a message to each user inside a group.
-     * @param message The message to send.
-     */
-    public void sendMessage(String message) {
-        for(User user : users) {
-            user.sendMessage(message);
-        }
-    }
 
     /**
      * Returns the group name

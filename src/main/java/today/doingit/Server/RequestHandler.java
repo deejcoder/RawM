@@ -74,7 +74,7 @@ public class RequestHandler {
      * @param content the content sent by the client
      * @return true if the request was valid and handled, else false.
      */
-    public boolean handleRequest(SocketChannel client, String content) {
+    public String handleRequest(Server server, SocketChannel client, String content) {
 
         //Get the request TYPE & request MESSAGE
         JsonParser parser = new JsonParser();
@@ -89,7 +89,9 @@ public class RequestHandler {
 
             //Invoke the request type's callback. i.e if type = authorization, invoke OnMessageRequest in Authorization
             try {
-                requestCallbacks.get(type.getAsString()).invoke(null, client, message.toString());
+                Object response = requestCallbacks.get(type.getAsString()).invoke(null, server, client, message.toString());
+                //TODO:Need to add exception handling
+                return (String) response;
             }
             catch(InvocationTargetException ite) {
                 ite.printStackTrace();
@@ -99,9 +101,11 @@ public class RequestHandler {
                 iae.printStackTrace();
                 System.exit(0);
             }
-            return true;
+            return "{" +
+                    "\"type\":\"broadcast\",\"body\":\"INVALID!\"" +
+                    "}";
         }
-        return false;
+        return "Invalid";
     }
 
     /**
@@ -112,6 +116,4 @@ public class RequestHandler {
     public boolean isValidRequest(String requestName) {
         return (requestCallbacks.containsKey(requestName));
     }
-
-
 }

@@ -1,29 +1,17 @@
 package today.doingit.App;
 
-import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 
 public class User {
 
     private String username;
-    private SelectionKey key;
+    private SocketChannel key;
 
     private ArrayList<byte[]> messages = new ArrayList<byte[]>();
 
-    public User(SelectionKey key) {
+    public User(SocketChannel key) {
         this.key = key;
-    }
-
-    /**
-     * Adds a message to the message queue which the server
-     * will then send it to the client socket.
-     * @param message A string containing the message to be sent to the user.
-     */
-    public void sendMessage(String message) {
-        //All message formatting & verification will occur here.
-        messages.add((message + "\r").getBytes());
-        key.interestOps(SelectionKey.OP_WRITE);
     }
 
     protected ArrayList<byte[]> getMessageQueue() {
@@ -56,7 +44,7 @@ public class User {
      * Get the user's SelectionKey which can be used to get the user's channel.
      * @return SelectionKey key
      */
-    protected SelectionKey getKey() {
+    protected SocketChannel getKey() {
         return key;
     }
 
