@@ -64,7 +64,7 @@ public class Authorization extends Request {
             }
             catch(IOException ie) {
                 ie.printStackTrace();
-                System.exit(0);
+                return "";
             }
         }
         return "{\"type\":\"broadcast\",\"body\":{\"type\":\"authorization\",\"body\":\"Authorized\"}}\r\n";

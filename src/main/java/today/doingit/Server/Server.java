@@ -146,6 +146,7 @@ public class Server {
         }
         catch(IOException ie) {
             ie.printStackTrace();
+            System.exit(0);
         }
     }
 
