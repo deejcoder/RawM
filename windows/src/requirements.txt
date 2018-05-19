@@ -1,0 +1,1 @@
+requires bower inside bower_components, within this dir
