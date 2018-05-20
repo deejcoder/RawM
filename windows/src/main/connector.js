@@ -15,7 +15,7 @@ var {app, BrowserWindow, ipcMain} = electron
 var net = require('net')
 
 //This stores in order, the Windows which have made requests.
-var requests = []
+var requests = [] //this doesn't work, since responses can come from server without requests!
 
 //Connect to the Java server
 //TODO: need to implement client.on('end', ...)
@@ -31,6 +31,9 @@ var client = net.connect({host: "127.0.0.1", port:5000}, function() {
 client.on('data', function(data) {
 
     //Get the 'next in line'
+    /*if(requests.length() == 0) {
+        //TODO: need to route request types to the ideal window (i.e message = index)
+    }*/
     var sender = requests.shift()
     console.log(data.toString())
     //Send it through the 'reply' channel, to the renderer process

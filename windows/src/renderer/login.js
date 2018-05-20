@@ -9,7 +9,6 @@
 //===> Requires <===
 const {ipcRenderer, remote} = require('electron')
 let $ = require('jquery')
-let net = require('net')
 let url = require('url')
 let path = require('path')
 
