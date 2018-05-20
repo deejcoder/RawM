@@ -91,6 +91,10 @@ public class Server {
             while (iter.hasNext()) {
                 SelectionKey key = iter.next();
 
+                if(!key.isValid()) {
+                    continue;
+                }
+
                 if (key.isAcceptable()) {
                     accept(selector);
 
@@ -146,7 +150,7 @@ public class Server {
         }
         catch(IOException ie) {
             ie.printStackTrace();
-            System.exit(0);
+            key.cancel();
         }
     }
 
