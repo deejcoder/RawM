@@ -27,14 +27,19 @@ public class Server {
     private SocketAddress addr;
     private ServerSocketChannel server;
     private Selector selector;
+
+    //This handles incoming requests.
     private RequestHandler requestHandler;
 
     private final static int bufferSize = 512;
 
+    //The message queue, for each user.
     private HashMap<SocketChannel, ArrayList<String>> messageQueue = new HashMap<SocketChannel, ArrayList<String>>();
 
     //Stores users that have been authorized.
-    private static Map<User, SocketChannel> clients = new HashMap<User, SocketChannel>();
+    private static Map<String, SelectionKey> clients = new HashMap<String, SelectionKey>();
+    private static Map<SelectionKey, String> reverseClients = new HashMap<SelectionKey, String>();
+
 
 
 
@@ -143,8 +148,8 @@ public class Server {
                 String data = new String(buffer.array(), "UTF-8");
                 System.out.println(data);
 
-                String response = requestHandler.handleRequest(this, client, data.replaceAll("\u0000.*,", ""));
-                ResponseHandler.handleResponse(this, response);
+                String response = requestHandler.handleRequest(this, key, data.replaceAll("\u0000.*,", ""));
+                ResponseHandler.handleResponse(this, key, response);
                 key.interestOps(SelectionKey.OP_WRITE);
             }
         }
@@ -171,6 +176,7 @@ public class Server {
             ArrayList<String> messages = messageQueue.get(client);
             while(!messages.isEmpty()) {
                 String data = messages.remove(0);
+                System.out.println("Sending to client: " + data);
                 client.write(ByteBuffer.wrap(data.getBytes()));
             }
 
@@ -179,21 +185,78 @@ public class Server {
         catch(IOException ie) {
             ie.printStackTrace();
         }
+        //For now NullPointerException would be thrown if the server doesn't write back to the client.
+        catch(NullPointerException npe) {
+            npe.printStackTrace();
+            key.interestOps(SelectionKey.OP_READ);
+        }
     }
 
-    //Needs updating
-    public void push(SocketChannel client, String message) {
-        if(messageQueue.containsKey(client)) {
-            messageQueue.get(client).add(message);
-        }
-        else {
+    /*
+        UTILS
+        ====
+     */
+    /**
+     * Add a message to the message queue that will be sent next time
+     * the server is writing to the client.
+     * @param client the client that should be sent the message.
+     * @param message the actual message.
+     */
+    public void pushMessage(SocketChannel client, String message) {
+        if(!messageQueue.containsKey(client)) {
             messageQueue.put(client, new ArrayList<String>());
-            messageQueue.get(client).add(message);
         }
+
+        messageQueue.get(client).add(message);
     }
 
-    public Map<User, SocketChannel> getClientList() {
-        return clients;
+    /**
+     * Adds a message to the message queue and tells the server to send the queue
+     * to the client.
+     * @param username the username to send the queue.
+     * @param message the actual message.
+     * @return true if the message was sent, otherwise false (invalid user was provided)
+     */
+    public boolean send(String username, String message) {
+
+        if(clients.containsKey(username)) {
+
+            SelectionKey key = clients.get(username);
+            SocketChannel client = (SocketChannel) key.channel();
+
+            pushMessage(client, message);
+            key.interestOps(SelectionKey.OP_WRITE);
+            return true;
+
+        }
+        return false;
+    }
+
+    /**
+     * Returns a list of the currently connected users.
+     * @return Set<String>
+     */
+    public Set<String> getClientList() {
+        return clients.keySet();
+    }
+
+    /**
+     * Adds a new client to the connected users list.
+     * @param username the username of the client to add.
+     * @param key the key belonging to the client.
+     */
+    public void addClient(String username, SelectionKey key) {
+        clients.put(username, key);
+        reverseClients.put(key, username);
+    }
+
+    /**
+     * Returns the username of a client, given their key.
+     * @param key the key of the client.
+     * @return the username as a String.
+     */
+    public String getClientUsername(SelectionKey key) {
+        return reverseClients.get(key);
     }
 
 }

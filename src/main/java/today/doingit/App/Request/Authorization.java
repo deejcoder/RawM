@@ -1,17 +1,16 @@
 package today.doingit.App.Request;
 
 //Google's JSON
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import today.doingit.App.User;
+import com.google.gson.*;
 import today.doingit.Server.Server;
 
 //Exceptions
 import java.io.IOException;
 
 //Networking
+import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import java.util.Set;
 
 /**
  * This class handles everything to do with user
@@ -34,7 +33,7 @@ public class Authorization extends Request {
     @RequestCallback(
             name = "authorization"
     )
-    public static String OnIncomingRequest(Server server, SocketChannel client, String content) {
+    public static String OnIncomingRequest(Server server, SelectionKey client, String content) {
         /*
             Authorization request should be the following format
             {
@@ -43,42 +42,65 @@ public class Authorization extends Request {
            }
          */
 
-        //If already authorized, exit
-        if(isAuthorized(client)) {
-            return "A01: Already Authorized";
-        }
+        //Try to parse the JSON
+        try {
 
-        //Get the username & password sent from the client
-        JsonParser parser = new JsonParser();
-        JsonElement rootNode = parser.parse(content);
+            //Get the username & password sent from the client
+            JsonParser parser = new JsonParser();
+            JsonElement rootNode = parser.parse(content);
 
-        if(rootNode.isJsonObject()) {
-            JsonObject json = rootNode.getAsJsonObject();
-            JsonElement username = json.get("username");
-            JsonElement password = json.get("password");
-            server.getClientList().put(new User(client), client);
+            if (rootNode.isJsonObject()) {
+                JsonObject json = rootNode.getAsJsonObject();
+                String username = json.get("username").getAsString();
+                JsonElement password = json.get("password");
 
-            System.out.println("Sending authorization request using username=" + username + " and password=" + password);
-            try {
-                System.out.println("Authorization successful for client " + client.getRemoteAddress().toString() + " with username=" + username);
+                //If already authorized, exit
+                if(isAuthorized(server, username)) {
+
+                    //Will write a proper error class later.
+                    return "{\"type\":\"error\", \"body\":\"The username is already taken!\"}\r\n";
+                }
+
+                //The user is now AUTHORIZED, add them to the client list.
+                server.addClient(username, client);
+
+
+
+                /*
+                    To be transformed into LogBack framework
+                    >===
+                 */
+                SocketChannel clientChannel = (SocketChannel) client.channel();
+
+                System.out.println("Sending authorization request using username=" + username + " and password=" + password);
+                try {
+                    System.out.println("Authorization successful for client " + clientChannel.getRemoteAddress().toString() + " with username=" + username);
+                } catch (IOException ie) {
+                    ie.printStackTrace();
+                    return "";
+                }
+                //===<
             }
-            catch(IOException ie) {
-                ie.printStackTrace();
-                return "";
-            }
+            return "{\"type\":\"broadcast\",\"body\":{\"type\":\"authorization\",\"body\":\"Authorized\"}}\r\n";
         }
-        return "{\"type\":\"broadcast\",\"body\":{\"type\":\"authorization\",\"body\":\"Authorized\"}}\r\n";
+        catch(JsonParseException jpe) {
+            jpe.printStackTrace();
+        }
+        return "{\"type\":\"error\", \"body\":\"500: Bad Request\"}\r\n";
+
     }
 
     /**
-     * Checks if the client has already been authorized
-     * @param client the channel belonging to the client
+     * Checks if someone by the given username is already connected.
+     * @param server the server the client is connected to
+     * @param username the username the client desires.
      * @return true or false
      */
-    public static boolean isAuthorized(SocketChannel client) {
-        /*if(users.containsKey(client)) {
+    public static boolean isAuthorized(Server server, String username) {
+        Set<String> clients = server.getClientList();
+        if(clients.contains(username)) {
             return true;
-        }*/
+        }
         return false;
     }
 }

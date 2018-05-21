@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <meta charset = "UTF-8">
+      <title>RawM</title>
+      <link rel = "stylesheet" 
+         href = "./bower_components/bootstrap/dist/css/bootstrap.min.css" />
+        <link rel = "stylesheet"
+            href = "./styles/index.css" />
+
+   </head>
+   
+   <body>
+       <script>
+           let $ = require('jquery');
+           var net = require('net');
+
+           var client = net.connect({host: "127.0.0.1", port:5000}, function() {
+               console.log('Connection established!');
+           });
+
+           client.on('data', function(data) {
+               showMessage(data.toString());
+
+                //Set the default scroll to the bottom of the textarea
+                var $textarea = $('#messageBox');
+                $textarea.scrollTop($textarea[0].scrollHeight);
+           });
+
+           client.on('end', function() {
+                console.log('Disconnected from server.');
+           });
+
+           function authicate(username) {
+               msg = {"type":"authorize", "authorize":"" + username};
+               message = JSON.stringify(msg);
+               client.write(message + "\r\n");
+           }
+           function showMessage(message) {
+               $('#messageBox').append(message);
+           }
+
+           function sendMessage(content) {
+                msg = {"type":"message", "message":{"username":"" + $('#friendInput').val() + "", "group":"", "message":"" + content}}
+                message = JSON.stringify(msg);
+                client.write(message + "\r\n");
+                $("#messageInput").text() = "";
+
+           }
+
+           $(document).ready(function() {
+
+                $("#button_send").click(function(){
+                    sendMessage($("#messageInput").val());
+
+                }); 
+
+                $("#button_connect").click(function() {
+                    authicate($('#usernameInput').val());
+                })
+           });
+
+
+
+
+
+        </script>
+
+        <div class="form-group" id="authContainer">
+            <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="inputGroup-sizing-sm">Username</span>
+                </div>
+                <input type="text" class="form-control" id="usernameInput"/>
+                <span class="input-group-addon">  </span>
+
+                <button class="btn btn-outline-secondary" type="button" id="button_connect">Connect</button>
+                <span class="input-group-addon">  </span>
+
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="inputGroup-sizing-sm">Friend</span>
+                </div>
+                <input type="text" class="form-control" id="friendInput" />
+            </div>
+
+            
+
+        </div>
+        <div class="form-group">
+            <textarea class="form-control messageArea" id="messageBox" rows=10 readonly></textarea>
+            <div class="input-group mb-3">
+                <input type="text" class="form-control messageArea" id="messageInput" placeholder="Type your message here..." />
+                <div class="input-group-append">
+                    <button class="btn btn-outline-secondary button_send" type="button" id="button_send">Send</button>
+                </div>
+            </div>
+        </div>
+   </body>
+</html>

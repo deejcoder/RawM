@@ -4,11 +4,11 @@ const path = require('path')
 
 require('electron-reload')(__dirname)
 
-let win
+global.win = {window : null}
 
 function createWindow() {
-   win = new BrowserWindow({width: 800, height: 600})
-   win.loadURL(url.format ({
+   win.window = new BrowserWindow({width: 800, height: 600})
+   win.window.loadURL(url.format ({
       pathname: path.join(__dirname, './src/renderer/login.html'),
       protocol: 'file:',
       slashes: true

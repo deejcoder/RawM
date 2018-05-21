@@ -1,10 +1,11 @@
 package today.doingit.Server;
 
 //Networking
-import java.nio.channels.SocketChannel;
+import java.nio.channels.SelectionKey;
 
 //Data structures
 import java.util.HashMap;
+import java.util.IllegalFormatConversionException;
 import java.util.Set;
 
 //Google's JSON
@@ -74,7 +75,7 @@ public class RequestHandler {
      * @param content the content sent by the client
      * @return true if the request was valid and handled, else false.
      */
-    public String handleRequest(Server server, SocketChannel client, String content) {
+    public String handleRequest(Server server, SelectionKey client, String content) {
 
         //Get the request TYPE & request MESSAGE
         JsonParser parser = new JsonParser();
@@ -90,7 +91,6 @@ public class RequestHandler {
             //Invoke the request type's callback. i.e if type = authorization, invoke OnMessageRequest in Authorization
             try {
                 Object response = requestCallbacks.get(type.getAsString()).invoke(null, server, client, message.toString());
-                //TODO:Need to add exception handling
                 return (String) response;
             }
             catch(InvocationTargetException ite) {
@@ -101,11 +101,15 @@ public class RequestHandler {
                 iae.printStackTrace();
                 System.exit(0);
             }
-            return "{" +
-                    "\"type\":\"broadcast\",\"body\":\"INVALID!\"" +
-                    "}";
+            catch(IllegalFormatConversionException e) {
+                e.printStackTrace();
+                System.exit(0);
+            }
         }
-        return "Invalid";
+        //TODO: change to proper error later
+        return "{" +
+                "\"type\":\"broadcast\",\"body\":\"INVALID!\"" +
+                "}";
     }
 
     /**

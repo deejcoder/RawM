@@ -31,7 +31,7 @@ sendBtn.addEventListener('click', function(event) {
 })
 
 ipcRenderer.on('reply', (event, message) => {
-
+    console.log(message)
     //Convert JSON into JS object.
     obj = JSON.parse(message)
 
@@ -39,7 +39,7 @@ ipcRenderer.on('reply', (event, message) => {
     if(obj.body.type == "message") {
 
         console.log("MESSAGE!")
-        $('#messageBox').text($("#messageBox").val() + obj.body.body.toString())
+        $('#messageBox').text($("#messageBox").val() + obj.body.body.toString() + "\n")
     }
     console.log(message)
 })
