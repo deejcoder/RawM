@@ -25,6 +25,7 @@ import java.lang.reflect.Method;
 //Internal
 import today.doingit.App.Database.Mongo;
 import today.doingit.App.Request.RequestCallback;
+import today.doingit.App.Response.Error;
 
 
 
@@ -88,16 +89,17 @@ public class RequestHandler {
         JsonParser parser = new JsonParser();
         JsonObject obj = parser.parse(content.trim()).getAsJsonObject();
 
-        JsonElement type = obj.get("type");
-        JsonElement message = obj.get("message");
+        String type = obj.get("type").getAsString();
+        String message = obj.get("message").toString();
 
 
         //It is considered a valid request if the request type exists in RequestCallbacks
-        if(isValidRequest(type.getAsString())) {
+        if(isValidRequest(type)) {
 
             //Invoke the request type's callback. i.e if type = authorization, invoke OnMessageRequest in Authorization
             try {
-                Object response = requestCallbacks.get(type.getAsString()).invoke(null, server, mongo, client, message.toString());
+
+                Object response = requestCallbacks.get(type).invoke(null, server, mongo, client, message);
                 return (String) response;
             }
             catch(InvocationTargetException ite) {
@@ -114,9 +116,7 @@ public class RequestHandler {
             }
         }
         //TODO: change to proper error later
-        return "{" +
-                "\"type\":\"broadcast\",\"body\":\"INVALID!\"" +
-                "}";
+        return Error.error("Bad Request");
     }
 
     /**
@@ -126,5 +126,6 @@ public class RequestHandler {
      */
     public boolean isValidRequest(String requestName) {
         return (requestCallbacks.containsKey(requestName));
+
     }
 }

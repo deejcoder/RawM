@@ -151,11 +151,19 @@ public class Server {
             if(read > 0) {
 
                 String data = new String(buffer.array(), "UTF-8");
+
+                //Prune null values from the string.
+                data = data.replaceAll("\u0000.*,", "");
+
                 System.out.println(data);
 
-                String response = requestHandler.handleRequest(this, key, data.replaceAll("\u0000.*,", ""));
+                String response = requestHandler.handleRequest(this, key, data);
                 ResponseHandler.handleResponse(this, key, response);
-                key.interestOps(SelectionKey.OP_WRITE);
+
+                //Write to the client if there are any messages to be sent
+                if(getMessageLength(client) > 0) {
+                    key.interestOps(SelectionKey.OP_WRITE);
+                }
             }
         }
         catch(IOException ie) {
@@ -216,30 +224,43 @@ public class Server {
     }
 
     /**
+     * Returns the number of messages currently waiting to be sent to the client.
+     * @param client the client
+     * @return the number of messages
+     */
+    public int getMessageLength(SocketChannel client) {
+        if(!messageQueue.containsKey(client)) {
+            return 0;
+        }
+        return messageQueue.get(client).size();
+    }
+
+    /**
      * Adds a message to the message queue and tells the server to send the queue
-     * to the client.
+     * to the client, given the username.
      * @param username the username to send the queue.
      * @param message the actual message.
      * @return true if the message was sent, otherwise false (invalid user was provided)
      */
     public boolean send(String username, String message) {
 
+        //Check if the username is used by an existing client
         if(clients.containsKey(username)) {
 
             SelectionKey key = clients.get(username);
 
-            if(key.isValid()) {
-                SocketChannel client = (SocketChannel) key.channel();
-
-                pushMessage(client, message);
-                key.interestOps(SelectionKey.OP_WRITE);
-                return true;
-            }
-
+            return send(key, message);
         }
         return false;
     }
-    //Merge with above!
+
+    /**
+     * Adds a message to the message queue and tells the server to send it, given
+     * the client's SelectionKey.
+     * @param key the client's key.
+     * @param message the message to add to the queue/send.
+     * @return
+     */
     public boolean send(SelectionKey key, String message) {
         if(key.isValid()) {
             SocketChannel client = (SocketChannel) key.channel();
