@@ -10,13 +10,15 @@
 
 package today.doingit;
 
+import today.doingit.App.Database.Mongo;
 import today.doingit.Server.Server;
 import java.io.IOException;
 
 public class Main {
 
     public static void main(String[] args) throws IOException {
-	    Server server = new Server(5000, "127.0.0.1");
+        Mongo mongo = new Mongo("mongodb://localhost:27017", "rawm");
+	    Server server = new Server(5000, "127.0.0.1", mongo);
 
     }
 }

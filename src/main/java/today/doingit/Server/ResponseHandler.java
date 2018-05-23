@@ -6,6 +6,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 
 import java.nio.channels.SelectionKey;
+import java.nio.channels.SocketChannel;
 
 /**
  * ResponseHandler will handle all outgoing messages.
@@ -49,7 +50,9 @@ public class ResponseHandler {
                         SendBroadcastMessage(server, response);
                         break;
                     }
-                    case "error":
+                    case "error": {
+                        SendResponse(server, key, response);
+                    }
                     case "user": {
                         SendClientMessage(server, key, response);
                         break;
@@ -75,6 +78,11 @@ public class ResponseHandler {
     //Send a message back to only the client who sent a request.
     public static boolean SendClientMessage(Server server,  SelectionKey key, String response) {
         String username = server.getClientUsername(key);
+        System.out.println(username);
         return server.send(username, response);
+    }
+
+    public static boolean SendResponse(Server server, SelectionKey key, String response) {
+        return server.send(key, response);
     }
 }

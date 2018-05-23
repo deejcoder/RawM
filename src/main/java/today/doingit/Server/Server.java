@@ -10,6 +10,7 @@
 
 package today.doingit.Server;
 
+import today.doingit.App.Database.Mongo;
 import today.doingit.App.User;
 
 import java.io.IOException;
@@ -40,6 +41,9 @@ public class Server {
     private static Map<String, SelectionKey> clients = new HashMap<String, SelectionKey>();
     private static Map<SelectionKey, String> reverseClients = new HashMap<SelectionKey, String>();
 
+    //The database
+    private Mongo mongo;
+
 
 
 
@@ -50,7 +54,7 @@ public class Server {
      * @param ip Start the server on this IP.
      * @throws IOException
      */
-    public Server(int port, String ip) throws IOException {
+    public Server(int port, String ip, Mongo mongo) throws IOException {
 
         if(selector != null) return;
         if(server != null) return;
@@ -60,12 +64,13 @@ public class Server {
         server = ServerSocketChannel.open();
         server.configureBlocking(false);
 
+
         //Begin listening for incoming connections
         addr = new InetSocketAddress(ip, port);
         server.socket().bind(addr);
 
         //Create a new request handler
-        requestHandler = new RequestHandler();
+        requestHandler = new RequestHandler(mongo);
 
         //Set up the selection key
         server.register(selector, SelectionKey.OP_ACCEPT);
@@ -222,12 +227,25 @@ public class Server {
         if(clients.containsKey(username)) {
 
             SelectionKey key = clients.get(username);
-            SocketChannel client = (SocketChannel) key.channel();
 
+            if(key.isValid()) {
+                SocketChannel client = (SocketChannel) key.channel();
+
+                pushMessage(client, message);
+                key.interestOps(SelectionKey.OP_WRITE);
+                return true;
+            }
+
+        }
+        return false;
+    }
+    //Merge with above!
+    public boolean send(SelectionKey key, String message) {
+        if(key.isValid()) {
+            SocketChannel client = (SocketChannel) key.channel();
             pushMessage(client, message);
             key.interestOps(SelectionKey.OP_WRITE);
             return true;
-
         }
         return false;
     }

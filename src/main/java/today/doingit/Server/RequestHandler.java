@@ -23,6 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 //Internal
+import today.doingit.App.Database.Mongo;
 import today.doingit.App.Request.RequestCallback;
 
 
@@ -31,14 +32,20 @@ import today.doingit.App.Request.RequestCallback;
 public class RequestHandler {
 
 
+    //Map of all callbacks in request type classes
     private final static HashMap<String, Method> requestCallbacks = new HashMap<String, Method>();
+
+    //the db
+    private Mongo mongo;
 
     /**
      * Constructor which when initialized will examine the classpath and generate a HashMap
      * containing all methods inside classes within the package, today.doingit.App that have the
      * {@link RequestCallback} annotation.
      */
-    public RequestHandler() {
+    public RequestHandler(Mongo mongo) {
+
+        this.mongo = mongo;
 
         /*
             This uses Reflections to examine the classpath
@@ -90,7 +97,7 @@ public class RequestHandler {
 
             //Invoke the request type's callback. i.e if type = authorization, invoke OnMessageRequest in Authorization
             try {
-                Object response = requestCallbacks.get(type.getAsString()).invoke(null, server, client, message.toString());
+                Object response = requestCallbacks.get(type.getAsString()).invoke(null, server, mongo, client, message.toString());
                 return (String) response;
             }
             catch(InvocationTargetException ite) {

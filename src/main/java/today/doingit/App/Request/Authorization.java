@@ -2,7 +2,9 @@ package today.doingit.App.Request;
 
 //Google's JSON
 import com.google.gson.*;
+import today.doingit.App.Database.Mongo;
 import today.doingit.Server.Server;
+import today.doingit.App.Response.Error;
 
 //Exceptions
 import java.io.IOException;
@@ -33,7 +35,7 @@ public class Authorization extends Request {
     @RequestCallback(
             name = "authorization"
     )
-    public static String OnIncomingRequest(Server server, SelectionKey client, String content) {
+    public static String OnIncomingRequest(Server server, Mongo mongo, SelectionKey client, String content) {
         /*
             Authorization request should be the following format
             {
@@ -58,7 +60,11 @@ public class Authorization extends Request {
                 if(isAuthorized(server, username)) {
 
                     //Will write a proper error class later.
-                    return "{\"type\":\"error\", \"body\":\"The username is already taken!\"}\r\n";
+                    return Error.error("The username is already taken");
+                }
+
+                if(!mongo.validUser(username)) {
+                    return Error.error("The user does not exist");
                 }
 
                 //The user is now AUTHORIZED, add them to the client list.
@@ -77,7 +83,7 @@ public class Authorization extends Request {
                     System.out.println("Authorization successful for client " + clientChannel.getRemoteAddress().toString() + " with username=" + username);
                 } catch (IOException ie) {
                     ie.printStackTrace();
-                    return "";
+                    return Error.error("There was an unexpected error");
                 }
                 //===<
             }
@@ -86,7 +92,7 @@ public class Authorization extends Request {
         catch(JsonParseException jpe) {
             jpe.printStackTrace();
         }
-        return "{\"type\":\"error\", \"body\":\"500: Bad Request\"}\r\n";
+        return Error.error("Bad Request");
 
     }
 

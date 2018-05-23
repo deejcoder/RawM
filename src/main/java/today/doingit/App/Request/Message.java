@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+import today.doingit.App.Database.Mongo;
 import today.doingit.Server.Server;
 
 import java.nio.channels.SelectionKey;
@@ -23,7 +24,7 @@ public class Message {
     @RequestCallback(
             name="message"
     )
-    public static String OnIncomingMessage(Server server, SelectionKey key, String content) {
+    public static String OnIncomingMessage(Server server, Mongo mongo, SelectionKey key, String content) {
 
         SocketChannel client = (SocketChannel) key.channel();
 
