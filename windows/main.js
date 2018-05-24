@@ -2,7 +2,7 @@ const {app, BrowserWindow} = require('electron')
 const url = require('url')
 const path = require('path')
 
-require('electron-reload')(__dirname)
+//require('electron-reload')(__dirname)
 
 global.win = {window : null}
 
@@ -13,6 +13,7 @@ function createWindow() {
       protocol: 'file:',
       slashes: true
    }))
+   win.window.webContents.openDevTools();
 }
 
 const connector = require('./src/main/connector')

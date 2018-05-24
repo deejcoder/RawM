@@ -21,7 +21,7 @@ var webcontents
 
 //Connect to the Java server
 //TODO: need to implement client.on('end', ...)
-var client = net.connect({host: "127.0.0.1", port:5000}, function() {
+var client = net.connect({host: "doingit.today", port:5000}, function() {
     console.log('Connection established!');
 })
 

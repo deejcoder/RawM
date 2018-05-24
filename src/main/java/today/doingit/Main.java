@@ -18,7 +18,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         Mongo mongo = new Mongo("mongodb://localhost:27017", "rawm");
-	    Server server = new Server(5000, "127.0.0.1", mongo);
+	    Server server = new Server(5000, "0.0.0.0", mongo);
 
     }
 }

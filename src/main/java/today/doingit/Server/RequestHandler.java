@@ -102,20 +102,12 @@ public class RequestHandler {
                 Object response = requestCallbacks.get(type).invoke(null, server, mongo, client, message);
                 return (String) response;
             }
-            catch(InvocationTargetException ite) {
-                ite.printStackTrace();
-                System.exit(0);
-            }
-            catch(IllegalAccessException iae) {
-                iae.printStackTrace();
-                System.exit(0);
-            }
-            catch(IllegalFormatConversionException e) {
+            catch(InvocationTargetException | IllegalAccessException | IllegalFormatConversionException e) {
                 e.printStackTrace();
                 System.exit(0);
             }
         }
-        //TODO: change to proper error later
+        //Return Bad Request if the request type doesn't exist
         return Error.error("Bad Request");
     }
 

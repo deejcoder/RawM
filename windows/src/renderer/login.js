@@ -15,6 +15,14 @@ let path = require('path')
 //Create an event listener for the login button
 const loginBtn = document.getElementById('login_button')
 
+document.addEventListener("keydown", function (e) {
+    if (e.which === 32) {
+        remote.getCurrentWindow().toggleDevTools();
+    } else if (e.which === 116) {
+        location.reload();
+    }
+});
+
 loginBtn.addEventListener('click', function(event) {
 
     //Create the JSON corresponding to an authorization request
