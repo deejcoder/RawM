@@ -50,8 +50,10 @@ public class ResponseHandler {
                         SendBroadcastMessage(server, response);
                         break;
                     }
-                    case "error": {
+                    case "client":
+                    case "error": { //TODO: Change error to sub-type
                         SendResponse(server, key, response);
+                        break;
                     }
                     case "user": {
                         SendClientMessage(server, key, response);

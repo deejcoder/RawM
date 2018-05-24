@@ -9,11 +9,11 @@ import java.util.IllegalFormatConversionException;
 import java.util.Set;
 
 //Google's JSON
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 //Reflections/Annotation
+import com.mongodb.util.JSONParseException;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
@@ -25,9 +25,7 @@ import java.lang.reflect.Method;
 //Internal
 import today.doingit.App.Database.Mongo;
 import today.doingit.App.Request.RequestCallback;
-import today.doingit.App.Response.Error;
-
-
+import today.doingit.App.Response.ResponseUtil;
 
 
 public class RequestHandler {
@@ -86,29 +84,36 @@ public class RequestHandler {
     public String handleRequest(Server server, SelectionKey client, String content) {
 
         //Get the request TYPE & request MESSAGE
-        JsonParser parser = new JsonParser();
-        JsonObject obj = parser.parse(content.trim()).getAsJsonObject();
+        try {
 
-        String type = obj.get("type").getAsString();
-        String message = obj.get("message").toString();
+            JsonParser parser = new JsonParser();
+            JsonObject obj = parser.parse(content.trim()).getAsJsonObject();
+
+            String type = obj.get("type").getAsString();
+            String message = obj.get("message").toString();
 
 
-        //It is considered a valid request if the request type exists in RequestCallbacks
-        if(isValidRequest(type)) {
+            //It is considered a valid request if the request type exists in RequestCallbacks
+            if (isValidRequest(type)) {
 
-            //Invoke the request type's callback. i.e if type = authorization, invoke OnMessageRequest in Authorization
-            try {
+                //Invoke the request type's callback. i.e if type = authorization, invoke OnMessageRequest in Authorization
+                try {
 
-                Object response = requestCallbacks.get(type).invoke(null, server, mongo, client, message);
-                return (String) response;
+                    Object response = requestCallbacks.get(type).invoke(null, server, mongo, client, message);
+                    return (String) response;
+
+                } catch (InvocationTargetException | IllegalAccessException | IllegalFormatConversionException e) {
+                    e.printStackTrace();
+                    System.exit(0);
+                }
             }
-            catch(InvocationTargetException | IllegalAccessException | IllegalFormatConversionException e) {
-                e.printStackTrace();
-                System.exit(0);
-            }
+            //Return Bad Request if the request type doesn't exist
         }
-        //Return Bad Request if the request type doesn't exist
-        return Error.error("Bad Request");
+        //Bad JSON Request
+        catch(JSONParseException e) {
+            e.printStackTrace();
+        }
+        return ResponseUtil.error("Bad Request");
     }
 
     /**

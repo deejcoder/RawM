@@ -4,7 +4,7 @@ package today.doingit.App.Request;
 import com.google.gson.*;
 import today.doingit.App.Database.Mongo;
 import today.doingit.Server.Server;
-import today.doingit.App.Response.Error;
+import today.doingit.App.Response.ResponseUtil;
 
 //Exceptions
 import java.io.IOException;
@@ -60,17 +60,15 @@ public class Authorization extends Request {
                 if(isAuthorized(server, username)) {
 
                     //Will write a proper error class later.
-                    return Error.error("The username is already taken");
+                    return ResponseUtil.error("The username is already taken");
                 }
 
                 if(!mongo.validUser(username)) {
-                    return Error.error("The user does not exist");
+                    return ResponseUtil.error("The user does not exist");
                 }
 
                 //The user is now AUTHORIZED, add them to the client list.
                 server.addClient(username, client);
-
-
 
                 /*
                     To be transformed into LogBack framework
@@ -78,21 +76,20 @@ public class Authorization extends Request {
                  */
                 SocketChannel clientChannel = (SocketChannel) client.channel();
 
-                System.out.println("Sending authorization request using username=" + username + " and password=" + password);
                 try {
                     System.out.println("Authorization successful for client " + clientChannel.getRemoteAddress().toString() + " with username=" + username);
                 } catch (IOException ie) {
                     ie.printStackTrace();
-                    return Error.error("There was an unexpected error");
+                    return ResponseUtil.error("There was an unexpected error");
                 }
                 //===<
             }
-            return "{\"type\":\"broadcast\",\"body\":{\"type\":\"authorization\",\"body\":\"Authorized\"}}\r\n";
+            return ResponseUtil.generateResponse("client", "{\"type\":\"authorization\", \"body\":\"Authorized\"}"); //TODO
         }
         catch(JsonParseException jpe) {
             jpe.printStackTrace();
         }
-        return Error.error("Bad Request");
+        return ResponseUtil.error("Bad Request");
 
     }
 
