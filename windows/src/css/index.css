@@ -1,8 +1,9 @@
 html, body {
     height: 100%;
     width: 100%;
-    background: rgb(43, 43, 43);
+    background: #2b2b2b;
     float:left;
+    -webkit-app-region: drag;
 }
 #messageBox {
     overflow-y:auto;
@@ -55,4 +56,8 @@ html, body {
 .message .seperator {
     height:1px;
     background-color:#353535;
+}
+
+input, .message p, button {
+    -webkit-app-region: no-drag;
 }

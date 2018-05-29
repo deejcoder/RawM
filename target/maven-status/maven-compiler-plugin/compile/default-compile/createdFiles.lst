@@ -5,7 +5,6 @@ today\doingit\App\Database\Mongo.class
 today\doingit\App\Request\Authorization.class
 today\doingit\App\Group.class
 today\doingit\App\Request\RequestCallback.class
-today\doingit\App\Response\Error.class
 today\doingit\Server\Server.class
 today\doingit\App\Request\Message.class
 today\doingit\Server\RequestHandler.class

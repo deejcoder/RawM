@@ -11,7 +11,9 @@ function createWindow() {
         name:"RawM",
         width:400,
         height:550,
-        toolbar: false
+        toolbar: false,
+        frame: false,
+        
     });
 
    win.window.loadURL(url.format ({

@@ -17,7 +17,19 @@ let path = require('path')
 const sendBtn = document.getElementById('button_send')
 
 sendBtn.addEventListener('click', function(event) {
-    console.log('test')
+    sendMessage();
+
+})
+
+
+$('#messageInput').keypress(function(e) {
+    if(e.which == 13) {
+        sendMessage();
+    }
+})
+
+//To be moved ----
+function sendMessage() {
     //Create the JSON corresponding to a message request
     obj = {
         "type":"message",
@@ -30,7 +42,8 @@ sendBtn.addEventListener('click', function(event) {
 
     showMessage("You", obj.message.body, true);
     ipcRenderer.send('send', json)
-})
+    $('#messageInput').val("");
+}
 
 ipcRenderer.on('reply', (event, message) => {
     console.log(message)
@@ -60,4 +73,9 @@ function showMessage(sender, body, client) {
     clone.find('.sender').text(sender)
     clone.find('.body').text(body)
     clone.appendTo('#messageBox')
+
+    //Set scroll to bottom
+    $('#messageBox').scrollTop($("#messageBox")[0].scrollHeight)
 }
+
+//---
