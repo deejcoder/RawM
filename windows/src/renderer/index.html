@@ -11,8 +11,9 @@
 
     <body>
         <div class="form-group">
-            <textarea class="form-control messageArea" id="messageBox" rows=20 readonly></textarea>
-            <div class="input-group mb-3">
+            <!--<textarea class="form-control messageArea" id="messageBox" rows=20 readonly></textarea>-->
+            <div id="messageBox"></div>
+            <div class="input-group mb-3" id="messageTools">
                 <input type="text" class="form-control messageArea" id="messageInput" placeholder="Type your message here..." />
                 <div class="input-group-append">
                     <button class="btn btn-outline-secondary button_send" type="button" id="button_send">Send</button>
@@ -20,13 +21,14 @@
             </div>
         </div>
 
-        <template id = "message">
-            <li>
+        <template id = "messageTemplate">
                 <div class="message">
+                    <p class="sender"></p>
                     <p class="body"></p>
-                </div>
-            </li>
+                    <div class="seperator">
 
+                    </div>
+                </div>
         </template>
 
         <script src="index.js"></script>

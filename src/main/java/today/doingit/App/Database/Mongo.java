@@ -2,6 +2,7 @@ package today.doingit.App.Database;
 
 
 import com.mongodb.*;
+import java.time.LocalDateTime;
 
 public class Mongo {
 
@@ -50,5 +51,30 @@ public class Mongo {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Creates a new user and inserts it to the Mongo database.
+     * @param username the username of the new user
+     * @param password the password of the new user
+     * @param description the user's profile description
+     * @return true or false depending on if the user was successfully created.
+     */
+    public boolean createUser(String username, String password, String description) {
+
+        try {
+            BasicDBObjectBuilder document = BasicDBObjectBuilder.start()
+                    .add("username", username)
+                    .add("password", password)
+                    .add("description", description)
+                    .add("createdDate", LocalDateTime.now());
+
+            users.insert(document.get());
+        }
+        catch(MongoException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 }

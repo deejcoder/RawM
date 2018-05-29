@@ -46,11 +46,8 @@ public class Message {
                 JsonElement address = json.get("address");
                 String body = json.get("body").getAsString();
 
-                //Annotate the message with the sender's username.
-                body = server.getClientUsername(key) + " says: " + body;
-
                 System.out.println("Sending " + body + ", to " + address);
-                return "{\"type\":\"broadcast\",\"body\":{\"type\":\"message\",\"body\":\"" + body + "\"}}\r\n";
+                return "{\"type\":\"broadcast\",\"body\":{\"type\":\"message\",\"sender\":\"" + server.getClientUsername(key) + "\",\"body\":\"" + body + "\"}}\r\n";
 
             }
         }

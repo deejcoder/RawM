@@ -1,0 +1,58 @@
+html, body {
+    height: 100%;
+    width: 100%;
+    background: rgb(43, 43, 43);
+    float:left;
+}
+#messageBox {
+    overflow-y:auto;
+    height:85%;
+    width:100%;
+    position: absolute;
+    top:0;
+}
+
+#messageTools {
+    position:absolute;
+    margin: auto;
+    padding:10px;
+    bottom: 0;
+}
+.message {
+    width:95%;
+    display:block;
+    margin-bottom:20px;
+    text-align:left;
+    line-height:1.5;
+    margin-left:2.5%;
+    margin-right:2.5%;
+    margin-top:5px;
+}
+
+.message .sender {
+    height:20px;
+    display: flex;
+    color:#d8d8d8;
+}
+
+.message .body {
+    display: flex;
+    background: rgba(60, 63, 65, 80);
+    color:#d8d8d8;
+    border-collapse: collapse;
+    overflow-wrap:break-word;
+    padding:10px;
+}
+
+.serverMessage {
+    text-align:right !important;
+}
+
+.serverMessage .body {
+    background-color: #545658 !important;
+}
+
+.message .seperator {
+    height:1px;
+    background-color:#353535;
+}

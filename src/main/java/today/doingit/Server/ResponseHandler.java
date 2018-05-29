@@ -47,7 +47,7 @@ public class ResponseHandler {
                 //What type of response is it?
                 switch (type) {
                     case "broadcast": {
-                        SendBroadcastMessage(server, response);
+                        SendBroadcastMessage(server, key, response);
                         break;
                     }
                     case "client":
@@ -72,6 +72,16 @@ public class ResponseHandler {
     //Send a message to every single client
     public static boolean SendBroadcastMessage(Server server, String response) {
         for(String user : server.getClientList()) {
+            server.send(user, response);
+        }
+        return true;
+    }
+
+    public static boolean SendBroadcastMessage(Server server, SelectionKey key, String response) {
+        for(String user: server.getClientList()) {
+            if(user == server.getClientUsername(key)) {
+                continue;
+            }
             server.send(user, response);
         }
         return true;

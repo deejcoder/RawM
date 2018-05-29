@@ -7,7 +7,13 @@ const path = require('path')
 global.win = {window : null}
 
 function createWindow() {
-   win.window = new BrowserWindow({width: 800, height: 600})
+    win.window = new BrowserWindow({
+        name:"RawM",
+        width:400,
+        height:550,
+        toolbar: false
+    });
+
    win.window.loadURL(url.format ({
       pathname: path.join(__dirname, './src/renderer/login.html'),
       protocol: 'file:',

@@ -27,6 +27,8 @@ sendBtn.addEventListener('click', function(event) {
         }
     }
     json = JSON.stringify(obj)
+
+    showMessage("You", obj.message.body, true);
     ipcRenderer.send('send', json)
 })
 
@@ -34,12 +36,28 @@ ipcRenderer.on('reply', (event, message) => {
     console.log(message)
     //Convert JSON into JS object.
     obj = JSON.parse(message)
+    body = obj.body;
 
     //Check if the message is an authorization type message.
-    if(obj.body.type == "message") {
+    if(body.type == "message") {
 
-        console.log("MESSAGE!")
-        $('#messageBox').text($("#messageBox").val() + obj.body.body.toString() + "\n")
+        //TODO: make server replies with 'sent', and doesn't return client's msg
+        showMessage(body.sender.toString(), body.body.toString(), false);
+   
+        //$('#messageBox').text($("#messageBox").val() + obj.body.body.toString() + "\n")
     }
     console.log(message)
 })
+
+function showMessage(sender, body, client) {
+    var template = $('#messageTemplate').html().trim()
+    var clone = $(template)
+
+    if(client == false) {
+        clone.attr("class", "message serverMessage")
+    }
+
+    clone.find('.sender').text(sender)
+    clone.find('.body').text(body)
+    clone.appendTo('#messageBox')
+}
