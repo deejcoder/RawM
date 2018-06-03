@@ -3,6 +3,7 @@ package today.doingit.App.Request;
 //Google's JSON
 import com.google.gson.*;
 import today.doingit.App.Database.Mongo;
+import today.doingit.App.User;
 import today.doingit.Server.Server;
 import today.doingit.App.Response.ResponseUtil;
 
@@ -10,9 +11,7 @@ import today.doingit.App.Response.ResponseUtil;
 import java.io.IOException;
 
 //Networking
-import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
-import java.util.Set;
 
 /**
  * This class handles everything to do with user
@@ -28,14 +27,15 @@ public class Authorization extends Request {
     /**
      * OnIncomingRequest is invoked when there is an incoming authorization request. This is
      * declared by the {@link RequestCallback} annotation.
-     * @param client the client sending the request
+     * @param sender the user sending the request
      * @param content the request content
      * @return the string to return to the client.
      */
     @RequestCallback(
             name = "authorization"
     )
-    public static String OnIncomingRequest(Server server, Mongo mongo, SelectionKey client, String content) {
+    public static String OnIncomingRequest(Server server, Mongo mongo, User sender, String content) {
+
         /*
             Authorization request should be the following format
             {
@@ -43,6 +43,14 @@ public class Authorization extends Request {
                 "password":"{PASSWORD}"
            }
          */
+
+        //If already authorized, exit
+        if(sender.isAuthorized()) {
+
+            //Will write a proper error class later.
+            return ResponseUtil.error("The username is already taken");
+        }
+
 
         //Try to parse the JSON
         try {
@@ -56,25 +64,18 @@ public class Authorization extends Request {
                 String username = json.get("username").getAsString();
                 JsonElement password = json.get("password");
 
-                //If already authorized, exit
-                if(isAuthorized(server, username)) {
-
-                    //Will write a proper error class later.
-                    return ResponseUtil.error("The username is already taken");
-                }
-
                 if(!mongo.validUser(username)) {
                     return ResponseUtil.error("The user does not exist");
                 }
 
                 //The user is now AUTHORIZED, add them to the client list.
-                server.addClient(username, client);
+                sender.setUsername(username);
 
                 /*
                     To be transformed into LogBack framework
                     >===
                  */
-                SocketChannel clientChannel = (SocketChannel) client.channel();
+                SocketChannel clientChannel = sender.getChannel();
 
                 try {
                     System.out.println("Authorization successful for client " + clientChannel.getRemoteAddress().toString() + " with username=" + username);
@@ -91,19 +92,5 @@ public class Authorization extends Request {
         }
         return ResponseUtil.error("Bad Request");
 
-    }
-
-    /**
-     * Checks if someone by the given username is already connected.
-     * @param server the server the client is connected to
-     * @param username the username the client desires.
-     * @return true or false
-     */
-    public static boolean isAuthorized(Server server, String username) {
-        Set<String> clients = server.getClientList();
-        if(clients.contains(username)) {
-            return true;
-        }
-        return false;
     }
 }

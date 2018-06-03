@@ -1,7 +1,5 @@
 package today.doingit.Server;
 
-//Networking
-import java.nio.channels.SelectionKey;
 
 //Data structures
 import java.util.HashMap;
@@ -26,6 +24,7 @@ import java.lang.reflect.Method;
 import today.doingit.App.Database.Mongo;
 import today.doingit.App.Request.RequestCallback;
 import today.doingit.App.Response.ResponseUtil;
+import today.doingit.App.User;
 
 
 public class RequestHandler {
@@ -77,11 +76,11 @@ public class RequestHandler {
 
     /**
      * Handles a request, given the client and content passed from the client.
-     * @param client the client's channel
+     * @param user the User
      * @param content the content sent by the client
      * @return true if the request was valid and handled, else false.
      */
-    public String handleRequest(Server server, SelectionKey client, String content) {
+    public String handleRequest(Server server, User user, String content) {
 
         //Get the request TYPE & request MESSAGE
         try {
@@ -99,19 +98,19 @@ public class RequestHandler {
                 //Invoke the request type's callback. i.e if type = authorization, invoke OnMessageRequest in Authorization
                 try {
 
-                    Object response = requestCallbacks.get(type).invoke(null, server, mongo, client, message);
+                    Object response = requestCallbacks.get(type).invoke(null, server, mongo, user, message);
                     return (String) response;
 
-                } catch (InvocationTargetException | IllegalAccessException | IllegalFormatConversionException e) {
-                    e.printStackTrace();
-                    System.exit(0);
+                } catch (InvocationTargetException | IllegalAccessException | IllegalFormatConversionException ex) {
+                    ex.printStackTrace();
+                    return ResponseUtil.error("Bad Request");
                 }
             }
             //Return Bad Request if the request type doesn't exist
         }
         //Bad JSON Request
-        catch(JSONParseException e) {
-            e.printStackTrace();
+        catch(JSONParseException ex) {
+            ex.printStackTrace();
         }
         return ResponseUtil.error("Bad Request");
     }
