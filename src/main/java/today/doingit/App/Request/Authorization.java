@@ -77,6 +77,8 @@ public class Authorization extends Request {
                     "Authorized"
             );
 
+            FetchActiveUsers.broadcastUserList(server, sender);
+
            return;
         }
         catch(JSONParseException ex) {

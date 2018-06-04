@@ -21,11 +21,17 @@ public class FetchActiveUsers {
     )
     public static void OnIncomingMessage(Server server, Mongo mongo, User sender, String data) {
 
+        broadcastUserList(server, sender);
+
+    }
+
+    public static void broadcastUserList(Server server, User sender) {
         //Stores all the usernames to a list. TODO: enable serialization of User objects
         ArrayList<String> userlist = new ArrayList<String>();
         for(User user : server.getClientList()) {
 
             if(user.getUsername() != null) {
+                System.out.println(user.getUsername());
                 userlist.add(user.getUsername());
             }
         }
@@ -39,11 +45,10 @@ public class FetchActiveUsers {
         //Complex response, since JSON in the body.
         ResponseHandler.ComplexResponse(
                 server,
-                sender,
-                ResponseHandler.R_TYPE.USER,
+                null,
+                ResponseHandler.R_TYPE.BROADCAST,
                 "activeusers",
                 body
         );
-
     }
 }

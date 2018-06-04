@@ -13,6 +13,7 @@ package today.doingit.Server;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import today.doingit.App.Database.Mongo;
+import today.doingit.App.Request.FetchActiveUsers;
 import today.doingit.App.User;
 
 import java.io.IOException;
@@ -140,6 +141,15 @@ public class Server {
         }
     }
 
+    private void disconnect(SelectionKey key) {
+        User user = clients.inverse().get(key);
+        clients.remove(user);
+        clients.remove(key);
+        key.cancel();
+
+        FetchActiveUsers.broadcastUserList(this, null);
+    }
+
     private void read(SelectionKey key) {
         User user = getUser(key);
         SocketChannel client = user.getChannel();
@@ -171,7 +181,7 @@ public class Server {
         }
         catch(IOException ex) {
             ex.printStackTrace();
-            key.cancel();
+            disconnect(key);
         }
     }
 
@@ -186,7 +196,7 @@ public class Server {
             //Get next message in queue belonging to THIS client channel & remove it
             ArrayList<String> messages = user.getMessages();
             while(!messages.isEmpty()) {
-                String message = messages.remove(0);
+                String message = messages.remove(0) + "\r\n";
                 System.out.println("Sending to client: " + message);
                 client.write(ByteBuffer.wrap(message.getBytes()));
             }
@@ -195,6 +205,7 @@ public class Server {
         }
         catch(IOException ex) {
             ex.printStackTrace();
+            disconnect(key);
         }
         //For now NullPointerException would be thrown if the server doesn't write back to the client.
         catch(NullPointerException ex) {

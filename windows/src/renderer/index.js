@@ -69,18 +69,18 @@ ipcRenderer.on('reply', (event, message) => {
     if(json.type == "message") {
 
         //TODO: make server replies with 'sent', and doesn't return client's msg
-        showMessage(json.body.sender.toString(), data.body.body.toString(), false);
+        showMessage(json.body.sender.toString(), json.body.body.toString(), false);
    
         //$('#messageBox').text($("#messageBox").val() + obj.body.body.toString() + "\n")
     }
 
     if(json.type == "activeusers") {
 
+        $("#userlist ul li").remove();
         for(user in json.body) {
             $("#userlist ul").append("<li>" + json.body[user] + "</li>");
         }
     }
-    console.log(message)
 })
 
 function showMessage(sender, data, client) {

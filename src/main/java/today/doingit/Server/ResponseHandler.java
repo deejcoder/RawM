@@ -134,8 +134,9 @@ public class ResponseHandler {
      * @return
      */
     public static boolean SendBroadcastMessage(Server server, User sender, String message) {
+        System.out.println("BROADCAST: " + message);
         for(User user: server.getClientList()) {
-            if(user == sender) {
+            if(user == sender || user == null) {
                 continue;
             }
             server.send(user, message);
@@ -151,6 +152,7 @@ public class ResponseHandler {
      * @return
      */
     public static boolean SendClientMessage(Server server,  User user, String message) {
+        if(user == null) return false;
         return server.send(user, message);
     }
 
