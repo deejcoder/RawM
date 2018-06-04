@@ -9,10 +9,10 @@ global.win = {window : null}
 function createWindow() {
     win.window = new BrowserWindow({
         name:"RawM",
-        width:400,
+        width:550,
         height:550,
         toolbar: false,
-        frame: false,
+        frame: true,
         
     });
 

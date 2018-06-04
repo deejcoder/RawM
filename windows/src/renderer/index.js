@@ -28,6 +28,21 @@ $('#messageInput').keypress(function(e) {
     }
 })
 
+getUserList();
+function getUserList() {
+    obj = {
+        "type":"FetchActiveUsers",
+        "message": {
+            "blah":"blah"
+        }
+    }
+
+    json = JSON.stringify(obj);
+    ipcRenderer.send('send', json)
+
+
+}
+
 //To be moved ----
 function sendMessage() {
     //Create the JSON corresponding to a message request
@@ -48,15 +63,22 @@ function sendMessage() {
 ipcRenderer.on('reply', (event, message) => {
     console.log(message)
     //Convert JSON into JS object.
-    data = JSON.parse(message)
+    json = JSON.parse(message)
 
     //Check if the message is an authorization type message.
-    if(data.type == "message") {
+    if(json.type == "message") {
 
         //TODO: make server replies with 'sent', and doesn't return client's msg
-        showMessage(data.body.sender.toString(), data.body.body.toString(), false);
+        showMessage(json.body.sender.toString(), data.body.body.toString(), false);
    
         //$('#messageBox').text($("#messageBox").val() + obj.body.body.toString() + "\n")
+    }
+
+    if(json.type == "activeusers") {
+
+        for(user in json.body) {
+            $("#userlist ul").append("<li>" + json.body[user] + "</li>");
+        }
     }
     console.log(message)
 })
