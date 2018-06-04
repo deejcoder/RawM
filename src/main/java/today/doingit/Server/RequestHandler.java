@@ -80,7 +80,7 @@ public class RequestHandler {
      * @param content the content sent by the client
      * @return true if the request was valid and handled, else false.
      */
-    public String handleRequest(Server server, User user, String content) {
+    public void handleRequest(Server server, User user, String content) {
 
         //Get the request TYPE & request MESSAGE
         try {
@@ -98,12 +98,13 @@ public class RequestHandler {
                 //Invoke the request type's callback. i.e if type = authorization, invoke OnMessageRequest in Authorization
                 try {
 
-                    Object response = requestCallbacks.get(type).invoke(null, server, mongo, user, message);
-                    return (String) response;
+                    requestCallbacks.get(type).invoke(null, server, mongo, user, message);
+                    return;
 
                 } catch (InvocationTargetException | IllegalAccessException | IllegalFormatConversionException ex) {
                     ex.printStackTrace();
-                    return ResponseUtil.error("Bad Request");
+                    ResponseHandler.BasicError(server, user, "Bad Request");
+                    return;
                 }
             }
             //Return Bad Request if the request type doesn't exist
@@ -112,7 +113,7 @@ public class RequestHandler {
         catch(JSONParseException ex) {
             ex.printStackTrace();
         }
-        return ResponseUtil.error("Bad Request");
+        ResponseHandler.BasicError(server, user, "Bad Request");
     }
 
     /**

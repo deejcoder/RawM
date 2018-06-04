@@ -50,10 +50,10 @@ ipcRenderer.on('reply', (event, message) => {
     obj = JSON.parse(message)
 
     //Check if the message is an authorization type message.
-    if(obj.body.type == "authorization") {
+    if(obj.type == "authorization") {
 
         //Is the user authorized?
-        if(obj.body.body == "Authorized") {
+        if(obj.body == "Authorized") {
             console.log("AUTHORIZED!")
 
             //Load the index page

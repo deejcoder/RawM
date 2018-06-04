@@ -2,16 +2,11 @@ package today.doingit.App.Request;
 
 //Google's JSON
 import com.google.gson.*;
+import com.mongodb.util.JSONParseException;
 import today.doingit.App.Database.Mongo;
 import today.doingit.App.User;
+import today.doingit.Server.ResponseHandler;
 import today.doingit.Server.Server;
-import today.doingit.App.Response.ResponseUtil;
-
-//Exceptions
-import java.io.IOException;
-
-//Networking
-import java.nio.channels.SocketChannel;
 
 /**
  * This class handles everything to do with user
@@ -19,6 +14,12 @@ import java.nio.channels.SocketChannel;
  *
  * TODO: Maintain connection to database, finish proper authorization.
  */
+final class AuthorizationRequest {
+    public String username;
+    public String password;
+
+}
+
 public class Authorization extends Request {
 
     public Authorization() {
@@ -34,63 +35,56 @@ public class Authorization extends Request {
     @RequestCallback(
             name = "authorization"
     )
-    public static String OnIncomingRequest(Server server, Mongo mongo, User sender, String content) {
+    public static void OnIncomingRequest(Server server, Mongo mongo, User sender, String content) {
 
-        /*
-            Authorization request should be the following format
-            {
-                "username":"{USERNAME}",
-                "password":"{PASSWORD}"
-           }
-         */
 
         //If already authorized, exit
         if(sender.isAuthorized()) {
 
             //Will write a proper error class later.
-            return ResponseUtil.error("The username is already taken");
+            ResponseHandler.BasicError(server, sender, "The user is already logged in.");
+            return;
         }
 
 
         //Try to parse the JSON
         try {
 
-            //Get the username & password sent from the client
-            JsonParser parser = new JsonParser();
-            JsonElement rootNode = parser.parse(content);
 
-            if (rootNode.isJsonObject()) {
-                JsonObject json = rootNode.getAsJsonObject();
-                String username = json.get("username").getAsString();
-                JsonElement password = json.get("password");
+            GsonBuilder builder = new GsonBuilder();
+            Gson gson = builder.create();
+            AuthorizationRequest request = gson.fromJson(content, AuthorizationRequest.class);
 
-                if(!mongo.validUser(username)) {
-                    return ResponseUtil.error("The user does not exist");
-                }
 
-                //The user is now AUTHORIZED, add them to the client list.
-                sender.setUsername(username);
-
-                /*
-                    To be transformed into LogBack framework
-                    >===
-                 */
-                SocketChannel clientChannel = sender.getChannel();
-
-                try {
-                    System.out.println("Authorization successful for client " + clientChannel.getRemoteAddress().toString() + " with username=" + username);
-                } catch (IOException ie) {
-                    ie.printStackTrace();
-                    return ResponseUtil.error("There was an unexpected error");
-                }
-                //===<
+            //Check if the user exists in the database TODO: password checks & encryption
+            if(!mongo.validUser(request.username)) {
+                ResponseHandler.BasicError(server, sender, "The user does not exist.");
+                return;
             }
-            return ResponseUtil.generateResponse("client", "{\"type\":\"authorization\", \"body\":\"Authorized\"}"); //TODO
+
+            //The user is now AUTHORIZED, add them to the client list.
+            sender.setUsername(request.username);
+            sender.setAuthorized(true);
+
+
+            //Basic response, telling the client they're authorized.
+            //TODO: send back user data instead
+            ResponseHandler.BasicResponse(
+                    server,
+                    sender,
+                    ResponseHandler.R_TYPE.USER,
+                    "authorization",
+                    "Authorized"
+            );
+
+           return;
         }
-        catch(JsonParseException jpe) {
-            jpe.printStackTrace();
+        catch(JSONParseException ex) {
+            ex.printStackTrace();
         }
-        return ResponseUtil.error("Bad Request");
+
+        ResponseHandler.BasicError(server, sender, "Bad Request");
+        return;
 
     }
 }

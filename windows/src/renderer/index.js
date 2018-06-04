@@ -48,21 +48,20 @@ function sendMessage() {
 ipcRenderer.on('reply', (event, message) => {
     console.log(message)
     //Convert JSON into JS object.
-    obj = JSON.parse(message)
-    body = obj.body;
+    data = JSON.parse(message)
 
     //Check if the message is an authorization type message.
-    if(body.type == "message") {
+    if(data.type == "message") {
 
         //TODO: make server replies with 'sent', and doesn't return client's msg
-        showMessage(body.sender.toString(), body.body.toString(), false);
+        showMessage(data.body.sender.toString(), data.body.body.toString(), false);
    
         //$('#messageBox').text($("#messageBox").val() + obj.body.body.toString() + "\n")
     }
     console.log(message)
 })
 
-function showMessage(sender, body, client) {
+function showMessage(sender, data, client) {
     var template = $('#messageTemplate').html().trim()
     var clone = $(template)
 
@@ -71,7 +70,7 @@ function showMessage(sender, body, client) {
     }
 
     clone.find('.sender').text(sender)
-    clone.find('.body').text(body)
+    clone.find('.body').text(data)
     clone.appendTo('#messageBox')
 
     //Set scroll to bottom

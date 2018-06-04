@@ -160,8 +160,8 @@ public class Server {
 
                 System.out.println(data);
 
-                String response = requestHandler.handleRequest(this, user, data);
-                ResponseHandler.handleResponse(this, user, response);
+                requestHandler.handleRequest(this, user, data);
+                //ResponseHandler.handleResponse(this, user, response);
 
                 //Write to the client if there are any messages to be sent
                 if(user.hasMessages()) {

@@ -3,7 +3,6 @@ package today.doingit.App;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 public class User {
 
