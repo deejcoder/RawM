@@ -43,21 +43,21 @@ public class Message {
 
         try {
 
-            //==> First deserialize the data into a MessageRequest object, using GSON
+            //1. ==> First deserialize the data into a MessageRequest object, using GSON
             GsonBuilder builder = new GsonBuilder();
             Gson gson = builder.create();
             MessageRequest request = gson.fromJson(content, MessageRequest.class);
 
 
-            //==> Now, work on producing a response
+            //2. ==> Now, work on producing a response
             MessageResponse response = new MessageResponse();
-            //Get the sender's username
+            //Set the response data
             response.sender = sender.getUsername();
-            //The message's body
             response.body = request.body;
 
-            //Convert it to a string
-            String responseString = gson.toJson(response);
+
+            //Convert response to JSON string.
+            String json = gson.toJson(response);
 
             //Let's create a complex response, since it contains JSON inside the body.
             ResponseHandler.ComplexResponse(
@@ -65,7 +65,7 @@ public class Message {
                     sender,
                     ResponseHandler.R_TYPE.BROADCAST,
                     "message",
-                    responseString
+                    json
             );
 
             System.out.println("Sending " + request.body + ", to " + request.address);

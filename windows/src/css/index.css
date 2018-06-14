@@ -13,6 +13,19 @@ html, body {
     padding:0;
     float:left;
 }
+#profileview {
+    display:none;
+    height:40%;
+    width:60%;
+    z-index:1;
+    position:fixed;
+    background-color:#3C3F41;
+    margin-left:25%;
+    margin-top:15%;
+    padding: 10px;
+    color: lightgrey;
+}
+
 #userlist {
     width:25%;
     height:100%;
@@ -33,6 +46,7 @@ html, body {
     color:darkgrey;
     border: 2px solid #2B2B2B;
     border-radius:15px;
+    cursor: pointer;
 }
 
 #userlist li {

@@ -77,4 +77,19 @@ public class Mongo {
         }
         return true;
     }
+
+    public String getUserInfo(String username) {
+        //Search Mongo for the corresponding username
+        DBObject query = new BasicDBObject("username", username);
+        DBCursor cursor = users.find(query);
+
+        String result = "";
+        //Get the user details, and store to the result string
+        if(cursor.one() != null) {
+            BasicDBObject obj = (BasicDBObject) cursor.next();
+            result = obj.getString("description");
+
+        }
+        return result;
+    }
 }

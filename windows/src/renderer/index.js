@@ -28,6 +28,40 @@ $('#messageInput').keypress(function(e) {
     }
 })
 
+//I know this is very messy, I just love to experiment first !
+$(document).ready(function() {
+    var userElements = document.querySelectorAll(".user");
+    var elem;
+
+    console.log(userElements);
+    for(var i = 0; i < userElements.length; i++) {
+        userElements[i].addEventListener("click", function(event) {
+            if(elem === this) {
+                $("#profileview").hide();
+                elem = null;
+                this.style.backgroundColor = null;
+                this.style.color = null;
+                return;
+            }
+            this.style.backgroundColor = "#3C3F41";
+            this.style.color = "white";
+
+            elem = this;
+            console.log('test');
+            obj = {
+                "type":"userinfo",
+                "message": {
+                    "username": "Dylan",
+                }
+            }
+            json = JSON.stringify(obj);
+            ipcRenderer.send('send', json)
+        });
+    }
+
+});
+
+
 getUserList();
 function getUserList() {
     obj = {
@@ -78,8 +112,13 @@ ipcRenderer.on('reply', (event, message) => {
 
         $("#userlist ul li").remove();
         for(user in json.body) {
-            $("#userlist ul").append("<li>" + json.body[user] + "</li>");
+            $("#userlist ul").append("<li class='user'>" + json.body[user] + "</li>");
         }
+    }
+
+    if(json.type == "userinfo") {
+        $("#profileview .text").text(json.body);
+        $("#profileview").show();
     }
 })
 
