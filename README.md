@@ -7,3 +7,4 @@ TODO:
 1.  Sessions: when a user logs in, the server replies with a session ID, which is stored locally and is valid for x amount of time. This will allow the user to reconnect if their connection times out.
 2.  Enforce TLS for security.
 3.  Organize CSS, and JavaScript with a proper structure.
+4.  Implement logback/log4j
