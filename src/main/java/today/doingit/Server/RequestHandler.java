@@ -1,27 +1,16 @@
 package today.doingit.Server;
 
-
-//Data structures
 import java.util.HashMap;
 import java.util.IllegalFormatConversionException;
 import java.util.Set;
-
-//Google's JSON
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-
-//Reflections/Annotation
 import com.mongodb.util.JSONParseException;
 import org.reflections.Reflections;
-import org.reflections.scanners.MethodAnnotationsScanner;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
-//Internal
 import today.doingit.App.Database.Mongo;
+import today.doingit.App.Request.Request;
 import today.doingit.App.Request.RequestCallback;
 import today.doingit.App.User;
 
@@ -30,7 +19,7 @@ public class RequestHandler {
 
 
     //Map of all callbacks in request type classes
-    private final static HashMap<String, Method> requestCallbacks = new HashMap<String, Method>();
+    private final static HashMap<String, Class<?>> requestCallbacks = new HashMap<>();
 
     //the db
     private Mongo mongo;
@@ -47,30 +36,21 @@ public class RequestHandler {
         /*
             This uses Reflections to examine the classpath
          */
-        Reflections reflections = new Reflections(
-            new ConfigurationBuilder()
-                .setUrls(ClasspathHelper.forPackage("today.doingit.App"))
-                .setScanners(new MethodAnnotationsScanner())
-        );
+        Reflections reflections = new Reflections("today.doingit.App");
 
-        //Gets all methods within the URI, today.doingit.App, that are annotated with @RequestCallback
-        Set<Method> annotated = reflections.getMethodsAnnotatedWith(RequestCallback.class);
+        //Gets all classes within the URI, today.doingit.App, that are annotated with @RequestCallback
+        System.out.println("Server started with the following request types:");
+        Set<Class<?>> annotated = reflections.getTypesAnnotatedWith(RequestCallback.class);
+        for(Class<?> clazz : annotated) {
+            Annotation ann = clazz.getAnnotation(RequestCallback.class);
 
-        /*
-            Loop through all the methods which contain the annotation
-         */
-        for(Method method : annotated) {
-            if (method.isAnnotationPresent(RequestCallback.class)) {
+            //Get the request's name
+            RequestCallback callback = (RequestCallback) ann;
 
-                Annotation ann = method.getAnnotation(RequestCallback.class);
-
-                //Get the name parameter of the annotation
-                RequestCallback callback = (RequestCallback) ann;
-                requestCallbacks.put(callback.name(), method);
-            }
+            //Store them by request name
+            requestCallbacks.put(callback.name(), clazz);
+            System.out.println(callback.name());
         }
-
-        System.out.println(requestCallbacks);
     }
 
     /**
@@ -97,10 +77,13 @@ public class RequestHandler {
                 //Invoke the request type's callback. i.e if type = authorization, invoke OnMessageRequest in Authorization
                 try {
 
-                    requestCallbacks.get(type).invoke(null, server, mongo, user, message);
+                    Object object  = requestCallbacks.get(type).newInstance();
+                    Request request = (Request) object;
+
+                    request.OnIncomingRequest(server, user, message);
                     return;
 
-                } catch (InvocationTargetException | IllegalAccessException | IllegalFormatConversionException ex) {
+                } catch (IllegalAccessException | IllegalFormatConversionException | InstantiationException | ClassCastException ex) {
                     ex.printStackTrace();
                     ResponseHandler.BasicError(server, user, "Bad Request");
                     return;

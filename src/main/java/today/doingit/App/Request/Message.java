@@ -1,7 +1,6 @@
 package today.doingit.App.Request;
 
 import com.google.gson.*;
-import today.doingit.App.Database.Mongo;
 import today.doingit.App.User;
 import today.doingit.Server.ResponseHandler;
 import today.doingit.Server.Server;
@@ -24,8 +23,10 @@ final class MessageResponse {
     public String body;
 }
 
-public class Message {
-    public Message() {}
+@RequestCallback(
+        name="message"
+)
+public class Message extends Request {
 
 
     /**
@@ -35,10 +36,8 @@ public class Message {
      * @param content the request content.
      * @return a String containing the response to be sent to the client.
      */
-    @RequestCallback(
-            name="message"
-    )
-    public static void OnIncomingMessage(Server server, Mongo mongo, User sender, String content) {
+    @Override
+    public void OnIncomingRequest(Server server, User sender, String content) {
 
 
         try {
@@ -80,7 +79,7 @@ public class Message {
         ResponseHandler.BasicError(
                 server,
                 sender,
-                "Bad Request"
+                "Bad RequestInterface"
         );
     }
 }

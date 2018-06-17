@@ -3,7 +3,6 @@ package today.doingit.App.Request;
 //Google's JSON
 import com.google.gson.*;
 import com.mongodb.util.JSONParseException;
-import today.doingit.App.Database.Mongo;
 import today.doingit.App.User;
 import today.doingit.Server.ResponseHandler;
 import today.doingit.Server.Server;
@@ -20,10 +19,11 @@ final class AuthorizationRequest {
 
 }
 
+@RequestCallback(
+        name = "authorization"
+)
 public class Authorization extends Request {
 
-    public Authorization() {
-    }
 
     /**
      * OnIncomingRequest is invoked when there is an incoming authorization request. This is
@@ -32,10 +32,8 @@ public class Authorization extends Request {
      * @param content the request content
      * @return the string to return to the client.
      */
-    @RequestCallback(
-            name = "authorization"
-    )
-    public static void OnIncomingRequest(Server server, Mongo mongo, User sender, String content) {
+    @Override
+    public void OnIncomingRequest(Server server, User sender, String content) {
 
 
         //If already authorized, exit
@@ -57,7 +55,7 @@ public class Authorization extends Request {
 
 
             //Check if the user exists in the database TODO: password checks & encryption
-            if(!mongo.validUser(request.username)) {
+            if(!server.mongo.validUser(request.username)) {
                 ResponseHandler.BasicError(server, sender, "The user does not exist.");
                 return;
             }
@@ -85,7 +83,7 @@ public class Authorization extends Request {
             ex.printStackTrace();
         }
 
-        ResponseHandler.BasicError(server, sender, "Bad Request");
+        ResponseHandler.BasicError(server, sender, "Bad RequestInterface");
         return;
 
     }

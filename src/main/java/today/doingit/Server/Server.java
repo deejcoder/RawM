@@ -41,7 +41,7 @@ public class Server {
     private static BiMap<User, SelectionKey> clients = HashBiMap.create();
 
     //The database
-    private Mongo mongo;
+    public Mongo mongo;
 
 
 
@@ -70,6 +70,9 @@ public class Server {
 
         //Create a new request handler
         requestHandler = new RequestHandler(mongo);
+
+        //set the db
+        this.mongo = mongo;
 
         //Set up the selection key
         server.register(selector, SelectionKey.OP_ACCEPT);

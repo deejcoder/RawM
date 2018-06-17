@@ -41,7 +41,7 @@ client.on('data', function(data) {
     data = data.toString().split("\r\n")
     console.log(data)
     for(line in data) {
-        if(data[line].length > 0) {
+        if(data[line].length > 0 && data != undefined) {
             console.log("DATA" + data[line])
             sender.send('reply', data[line])
         }

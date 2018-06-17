@@ -2,7 +2,6 @@ package today.doingit.App.Request;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import today.doingit.App.Database.Mongo;
 import today.doingit.App.User;
 import today.doingit.Server.ResponseHandler;
 import today.doingit.Server.Server;
@@ -12,14 +11,14 @@ import java.util.ArrayList;
 /**
  * A request to get a list of all active users on the server.
  */
-public class FetchActiveUsers {
+@RequestCallback(
+        name="FetchActiveUsers"
+)
+public class FetchActiveUsers extends Request {
 
-    public FetchActiveUsers() {}
 
-    @RequestCallback(
-            name="FetchActiveUsers"
-    )
-    public static void OnIncomingMessage(Server server, Mongo mongo, User sender, String data) {
+    @Override
+    public void OnIncomingRequest(Server server, User sender, String data) {
 
         broadcastUserList(server, sender);
 

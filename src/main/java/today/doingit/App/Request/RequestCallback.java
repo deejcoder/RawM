@@ -8,7 +8,7 @@ import java.lang.annotation.*;
  * equal.
  * Name is the identifer of the request type.
  */
-@Target({ElementType.METHOD})
+@Target({ElementType.TYPE})
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RequestCallback {
